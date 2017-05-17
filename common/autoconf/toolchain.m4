@@ -33,13 +33,14 @@ AC_DEFUN([TOOLCHAIN_PREPARE_FOR_VERSION_COMPARISONS],
   fi
 
   # We only check CC_VERSION since we assume CXX_VERSION is equal.
-  if [ [[ "$CC_VERSION" =~ (.*\.){3} ]] ]; then
-    AC_MSG_WARN([C compiler version number has more than three parts (X.Y.Z): $CC_VERSION. Comparisons might be wrong.])
-  fi
+  # Commented out since it fails in the shell
+  #if [ [[ "$CC_VERSION" =~ (.*\.){3} ]] ]; then
+  #  AC_MSG_WARN([C compiler version number has more than three parts (X.Y.Z): $CC_VERSION. Comparisons might be wrong.])
+  #fi
 
-  if [ [[  "$CC_VERSION" =~ [0-9]{6} ]] ]; then
-    AC_MSG_WARN([C compiler version number has a part larger than 99999: $CC_VERSION. Comparisons might be wrong.])
-  fi
+  #if [ [[  "$CC_VERSION" =~ [0-9]{6} ]] ]; then
+  #  AC_MSG_WARN([C compiler version number has a part larger than 99999: $CC_VERSION. Comparisons might be wrong.])
+  #fi
 
   COMPARABLE_ACTUAL_VERSION=`$AWK -F. '{ printf("%05d%05d%05d\n", [$]1, [$]2, [$]3) }' <<< "$CC_VERSION"`
 ])
@@ -55,13 +56,13 @@ AC_DEFUN([TOOLCHAIN_CHECK_COMPILER_VERSION],
 [
   REFERENCE_VERSION=$1
 
-  if [ [[ "$REFERENCE_VERSION" =~ (.*\.){3} ]] ]; then
-    AC_MSG_ERROR([Internal error: Cannot compare to $REFERENCE_VERSION, only three parts (X.Y.Z) is supported])
-  fi
+  #if [ [[ "$REFERENCE_VERSION" =~ (.*\.){3} ]] ]; then
+  #  AC_MSG_ERROR([Internal error: Cannot compare to $REFERENCE_VERSION, only three parts (X.Y.Z) is supported])
+  #fi
 
-  if [ [[ "$REFERENCE_VERSION" =~ [0-9]{6} ]] ]; then
-    AC_MSG_ERROR([Internal error: Cannot compare to $REFERENCE_VERSION, only parts < 99999 is supported])
-  fi
+  #if [ [[ "$REFERENCE_VERSION" =~ [0-9]{6} ]] ]; then
+  #  AC_MSG_ERROR([Internal error: Cannot compare to $REFERENCE_VERSION, only parts < 99999 is supported])
+  #fi
 
   # Version comparison method inspired by http://stackoverflow.com/a/24067243
   COMPARABLE_REFERENCE_VERSION=`$AWK -F. '{ printf("%05d%05d%05d\n", [$]1, [$]2, [$]3) }' <<< "$REFERENCE_VERSION"`
