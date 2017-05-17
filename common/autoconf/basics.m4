@@ -279,7 +279,6 @@ AC_DEFUN_ONCE([BASIC_SETUP_FUNDAMENTAL_TOOLS],
   BASIC_REQUIRE_PROG(CMP, cmp)
   BASIC_REQUIRE_PROG(COMM, comm)
   BASIC_REQUIRE_PROG(CP, cp)
-  BASIC_REQUIRE_PROG(CPIO, cpio)
   BASIC_REQUIRE_PROG(CUT, cut)
   BASIC_REQUIRE_PROG(DATE, date)
   BASIC_REQUIRE_PROG(DIFF, [gdiff diff])
@@ -336,6 +335,8 @@ AC_DEFUN_ONCE([BASIC_SETUP_FUNDAMENTAL_TOOLS],
   AC_PATH_PROG(READLINK, readlink)
   AC_PATH_PROG(DF, df)
   AC_PATH_PROG(SETFILE, SetFile)
+  # Make it compatible for MSYS (backport from jdk9)
+  AC_PATH_PROG(CPIO, [cpio bsdcpio])
 ])
 
 # Setup basic configuration paths, and platform-specific stuff related to PATHs.
@@ -712,7 +713,7 @@ AC_DEFUN([BASIC_CHECK_DIR_ON_LOCAL_DISK],
 # not be the case in cygwin in certain conditions.
 AC_DEFUN_ONCE([BASIC_CHECK_SRC_PERMS],
 [
-  if test x"$OPENJDK_BUILD_OS" = xwindows; then
+  if test x"$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin"; then
     file_to_test="$SRC_ROOT/LICENSE"
     if test `$STAT -c '%a' "$file_to_test"` -lt 400; then
       AC_MSG_ERROR([Bad file permissions on src files. This is usually caused by cloning the repositories with a non cygwin hg in a directory not created in cygwin.])
