@@ -30,7 +30,7 @@
 ###############################################################################
 
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.68])
 AC_INIT(OpenJDK, jdk8, build-dev@openjdk.java.net,,http://openjdk.java.net)
 
 AC_CONFIG_AUX_DIR([build-aux])
