@@ -107,10 +107,11 @@ AC_DEFUN([TOOLCHAIN_EXTRACT_COMPILER_VERSION],
   elif test  "x$OPENJDK_TARGET_OS" = xwindows; then
     # First line typically looks something like:
     # Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 16.00.40219.01 for 80x86
-    COMPILER_VERSION_TEST=`$COMPILER 2>&1 | $HEAD -n 1 | $TR -d '\r'`
+    COMPILER_VERSION_TEST=`"$COMPILER" 2>&1 | $HEAD -n 1 | $TR -d '\r'`
     COMPILER_VERSION=`$ECHO $COMPILER_VERSION_TEST | $SED -n "s/^.*Version \(@<:@1-9@:>@@<:@0-9.@:>@*\) .*/\1/p"`
     COMPILER_VENDOR="Microsoft CL.EXE"
-    COMPILER_CPU_TEST=`$ECHO $COMPILER_VERSION_TEST | $SED -n "s/^.* for \(.*\)$/\1/p"`
+	# Make CPU Test Localization independant (on non english locale it might say "für" or "pour", ...)
+    COMPILER_CPU_TEST=`$ECHO $COMPILER_VERSION_TEST | $SED -n "s/^.*\(x86\|x64\)$/\1/p"`
     if test "x$OPENJDK_TARGET_CPU" = "xx86"; then
       if test "x$COMPILER_CPU_TEST" != "x80x86"; then
         AC_MSG_ERROR([Target CPU mismatch. We are building for $OPENJDK_TARGET_CPU but CL is for "$COMPILER_CPU_TEST"; expected "80x86".])
