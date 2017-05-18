@@ -27,6 +27,7 @@
 # Parse the first contiguous comment block in this script and generate
 # a java comment block. If this script is invoked with a copyright
 # year/year range, the java comment block will contain a Sun copyright.
+# NOTE: Windows required the change from /^$/ to /^[\n\r]*$/ for this to work
 
 COPYRIGHT_YEARS="$1"
 
@@ -40,6 +41,6 @@ if [ "x$COPYRIGHT_YEARS" != x ]; then
 __END__
 fi
 
-$NAWK ' /^#.*Copyright.*Oracle/ { next }
+$NAWK '/^#.*Copyright.*Oracle/ { next }
     /^#([^!]|$)/ { sub(/^#/, " *"); print }
-    /^$/ { print " */"; exit } ' $0
+    /^[\n\r]*$/ { print " */"; exit } ' $0
