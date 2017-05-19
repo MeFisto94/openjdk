@@ -185,7 +185,7 @@ $(OBJDIR)/%.o : %.c tools/util-$(ARCH).il
 
 # This library 'libmcount.so' also used by hotspot reordering.
 $(OBJDIR)/libmcount.so : $(MCOUNT_OBJ)
-	$(CC) -G -mt -zdefs -o $@ $^ $(LIBDL) -lelf $(EXTRA_LIBS)
+	$(CC) -G -md -zdefs -o $@ $^ $(LIBDL) -lelf $(EXTRA_LIBS)
 
 # This library 'libmcount.so' also used by hotspot reordering.
 $(OBJDIR)/remove_mcount : remove_mcount.c

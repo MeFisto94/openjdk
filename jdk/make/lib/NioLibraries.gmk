@@ -29,6 +29,7 @@ BUILD_LIBNIO_SRC := \
     $(JDK_TOPDIR)/src/$(OPENJDK_TARGET_OS_API_DIR)/native/sun/nio/fs
 
 BUILD_LIBNIO_CFLAGS := \
+	-MD \
     -I$(JDK_TOPDIR)/src/share/native/sun/nio/ch \
     -I$(JDK_TOPDIR)/src/share/native/java/io \
     -I$(JDK_TOPDIR)/src/share/native/java/net \

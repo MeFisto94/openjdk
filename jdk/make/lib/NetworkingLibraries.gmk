@@ -65,7 +65,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBNET, \
     EXCLUDE_FILES := $(LIBNET_EXCLUDE_FILES), \
     LANG := C, \
     OPTIMIZATION := LOW, \
-    CFLAGS := $(CFLAGS_JDKLIB) \
+    CFLAGS := $(CFLAGS_JDKLIB) -MD \
         $(LIBNET_CFLAGS), \
     MAPFILE := $(JDK_TOPDIR)/make/mapfiles/libnet/mapfile-vers, \
     LDFLAGS := $(LDFLAGS_JDKLIB) \
