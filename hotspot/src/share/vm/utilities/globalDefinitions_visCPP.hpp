@@ -31,6 +31,10 @@
 // globally used constants & types, class (forward)
 // declarations and a few frequently used utility functions.
 
+
+// Prevent 
+#define _NO_CRT_STDIO_INLINE 1
+
 # include <ctype.h>
 # include <string.h>
 # include <stdarg.h>
@@ -187,13 +191,14 @@ const jlong max_jlong = CONST64(0x7fffffffffffffff);
 #pragma warning( disable : 4996 ) // unsafe string functions. Same as define _CRT_SECURE_NO_WARNINGS/_CRT_SECURE_NO_DEPRICATE
 #endif
 
+/* Commented out because it clashes with the already implemented vsnprintf imported from the stdio header
 inline int vsnprintf(char* buf, size_t count, const char* fmt, va_list argptr) {
   // If number of characters written == count, Windows doesn't write a
   // terminating NULL, so we do it ourselves.
   int ret = _vsnprintf(buf, count, fmt, argptr);
   if (count > 0) buf[count-1] = '\0';
   return ret;
-}
+}*/
 
 // Portability macros
 #define PRAGMA_INTERFACE
