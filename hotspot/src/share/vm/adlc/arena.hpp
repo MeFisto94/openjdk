@@ -72,6 +72,7 @@ class Chunk: public CHeapObj {
  public:
   void* operator new(size_t size, size_t length) throw();
   void  operator delete(void* p, size_t length);
+  void  operator delete(void *p);
   Chunk(size_t length);
 
   enum {

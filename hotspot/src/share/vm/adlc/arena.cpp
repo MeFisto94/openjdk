@@ -25,11 +25,17 @@
 #include "adlc.hpp"
 
 void* Chunk::operator new(size_t requested_size, size_t length) throw() {
-  return CHeapObj::operator new(requested_size + length);
+	return CHeapObj::operator new(requested_size + length);
 }
 
 void  Chunk::operator delete(void* p, size_t length) {
-  CHeapObj::operator delete(p);
+	CHeapObj::operator delete(p);
+}
+
+/* https://connect.microsoft.com/VisualStudio/feedback/details/1351894 Error C2956,
+   https://www.ibm.com/developerworks/community/forums/html/topic?id=fb641a88-7c85-4275-993d-bcceae6adfa3 */
+void  Chunk::operator delete(void *p) {
+	CHeapObj::operator delete(p);
 }
 
 Chunk::Chunk(size_t length) {
