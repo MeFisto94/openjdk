@@ -340,6 +340,7 @@ class SlowSignatureHandler
     }
   }
 
+  #pragma warning ( disable: 4334 )
   virtual void pass_float()
   {
     jint from_obj = *(jint *)(_from+Interpreter::local_offset_in_bytes(0));

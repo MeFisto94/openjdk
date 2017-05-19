@@ -315,7 +315,7 @@ void Compile::gvn_replace_by(Node* n, Node* nn) {
   }
 }
 
-
+#pragma warning( disable: 4312 ) // Casting
 static inline bool not_a_node(const Node* n) {
   if (n == NULL)                   return true;
   if (((intptr_t)n & 1) != 0)      return true;  // uninitialized, etc.

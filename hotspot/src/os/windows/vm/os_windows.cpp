@@ -2203,7 +2203,7 @@ struct siglabel {
 
 #define EXCEPTION_UNCAUGHT_CXX_EXCEPTION    0xE06D7363
 
-
+#pragma warning( disable: 4838 ) // Loose precision when casting uint to int...
 struct siglabel exceptlabels[] = {
     def_excpt(EXCEPTION_ACCESS_VIOLATION),
     def_excpt(EXCEPTION_DATATYPE_MISALIGNMENT),

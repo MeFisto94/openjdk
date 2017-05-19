@@ -941,6 +941,7 @@ void CodeBuffer::take_over_code_from(CodeBuffer* cb) {
   DEBUG_ONLY(cb->_blob = (BufferBlob*)badAddress);
 }
 
+#pragma warning( disable: 4312 ) // intentional "upcasting" in line 947 (tstart == badAddress)
 void CodeBuffer::verify_section_allocation() {
   address tstart = _total_start;
   if (tstart == badAddress)  return;  // smashed by set_blob(NULL)

@@ -1260,6 +1260,7 @@ void PhaseCFG::schedule_late(VectorSet &visited, Node_List &stack) {
 } // end ScheduleLate
 
 //------------------------------GlobalCodeMotion-------------------------------
+#pragma warning( disable: 4312 ) // Casting
 void PhaseCFG::global_code_motion() {
   ResourceMark rm;
 

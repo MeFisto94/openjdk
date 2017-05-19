@@ -252,6 +252,7 @@ struct small_cache : public Dict {
 // to false and which to true.  Put in a PhiNode to merge values; plug in
 // the appropriate false-arm or true-arm values.  If some path leads to the
 // original IF, then insert a Phi recursively.
+#pragma warning( disable: 4312 ) // Casting
 Node *PhaseIdealLoop::spinup( Node *iff_dom, Node *new_false, Node *new_true, Node *use_blk, Node *def, small_cache *cache ) {
   if (use_blk->is_top())        // Handle dead uses
     return use_blk;

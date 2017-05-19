@@ -125,6 +125,10 @@ class typeArrayOopDesc : public arrayOopDesc {
   // Java thinks metadata arrays are just arrays of either long or int, since
   // there doesn't seem to be T_ADDRESS, so this is a bit of unfortunate
   // casting
+
+#pragma warning( disable : 4311 ) // 
+#pragma warning( disable : 4302 ) // Data loss when converting to long instead of unsigned long
+
 #ifdef _LP64
   Metadata* metadata_at(int which) const {
     return (Metadata*)*long_at_addr(which); }

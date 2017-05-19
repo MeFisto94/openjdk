@@ -2251,6 +2251,7 @@ nmethod* volatile nmethod::_oops_do_mark_nmethods;
 // Even if it is the end of the linked list, it will have a non-null link value,
 // as long as it is on the list.
 // This code must be MP safe, because it is used from parallel GC passes.
+#pragma warning( disable: 4312 ) // intentional "upcasting"
 bool nmethod::test_set_oops_do_mark() {
   assert(nmethod::oops_do_marking_is_active(), "oops_do_marking_prologue must be called");
   nmethod* observed_mark_link = _oops_do_mark_link;

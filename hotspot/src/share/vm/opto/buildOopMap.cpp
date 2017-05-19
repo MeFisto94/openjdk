@@ -568,6 +568,7 @@ static void do_liveness(PhaseRegAlloc* regalloc, PhaseCFG* cfg, Block_List* work
 }
 
 // Collect GC mask info - where are all the OOPs?
+#pragma warning( disable: 4312 ) // Casting
 void Compile::BuildOopMaps() {
   NOT_PRODUCT( TracePhase t3("bldOopMaps", &_t_buildOopMaps, TimeCompiler); )
   // Can't resource-mark because I need to leave all those OopMaps around,

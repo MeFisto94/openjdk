@@ -51,6 +51,7 @@ PRAGMA_FORMAT_MUTE_WARNINGS_FOR_GCC
 Dict* Type::_shared_type_dict = NULL;
 
 // Array which maps compiler types to Basic Types
+#pragma warning( disable: 4838 ) // Casting
 Type::TypeInfo Type::_type_info[Type::lastype] = {
   { Bad,             T_ILLEGAL,    "bad",           false, Node::NotAMachineReg, relocInfo::none          },  // Bad
   { Control,         T_ILLEGAL,    "control",       false, 0,                    relocInfo::none          },  // Control

@@ -1021,6 +1021,7 @@ void WaitForBarrierGCTask::destroy(WaitForBarrierGCTask* that) {
   }
 }
 
+#pragma warning( disable: 4312 ) // Casting
 void WaitForBarrierGCTask::destruct() {
   assert(monitor() != NULL, "monitor should not be NULL");
   if (TraceGCTaskManager) {
