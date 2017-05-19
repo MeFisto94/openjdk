@@ -91,15 +91,16 @@ GENERATED_NAMES_IN_DIR=\
   $(AdlcOutDir)\adGlobals_$(Platform_arch_model).hpp \
   $(AdlcOutDir)\dfa_$(Platform_arch_model).cpp
 
-{$(WorkSpace)\src\share\vm\adlc}.cpp.obj::
-        $(CXX) $(ADLC_CXX_FLAGS) $(EXH_FLAGS) $(CXX_INCLUDE_DIRS) /c $<
+PLATFORM_WINMD = /AI"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x86\store\references"
 
+{$(WorkSpace)\src\share\vm\adlc}.cpp.obj::
+        $(CXX) $(ADLC_CXX_FLAGS) $(EXH_FLAGS) $(PLATFORM_WINMD) $(CXX_INCLUDE_DIRS) /c $<
 {$(WorkSpace)\src\share\vm\opto}.cpp.obj::
-        $(CXX) $(ADLC_CXX_FLAGS) $(EXH_FLAGS) $(CXX_INCLUDE_DIRS) /c $<
+        $(CXX) $(ADLC_CXX_FLAGS) $(EXH_FLAGS) $(PLATFORM_WINMD) $(CXX_INCLUDE_DIRS) /c $<
 
 adlc.exe: main.obj adlparse.obj archDesc.obj arena.obj dfa.obj dict2.obj filebuff.obj \
           forms.obj formsopt.obj formssel.obj opcodes.obj output_c.obj output_h.obj
-	$(LD) $(LD_FLAGS) /subsystem:console /out:$@ $**
+	$(LD) $(LD_FLAGS) $(PLATFORM_WINMD) /MANIFEST /subsystem:console /out:$@ $**
 !if "$(MT)" != ""
 # The previous link command created a .manifest file that we want to
 # insert into the linked artifact so we do not need to track it

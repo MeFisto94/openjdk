@@ -92,6 +92,9 @@
 /* for enumerating dll libraries */
 #include <vdmdbg.h>
 
+#using <Windows.winmd>
+#using <Platform.winmd>
+
 // for timer info max values which include all bits
 #define ALL_64_BITS CONST64(0xFFFFFFFFFFFFFFFF)
 
@@ -122,7 +125,7 @@ static FILETIME process_kernel_time;
 // save DLL module handle, used by GetModuleFileName
 
 HINSTANCE vm_lib_handle;
-
+[Platform::MTAThread]
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
   switch (reason) {
     case DLL_PROCESS_ATTACH:
@@ -1513,9 +1516,9 @@ static int _print_module(int pid, char* fname, address base,
 // same architecture as Hotspot is running on
 void * os::dll_load(const char *name, char *ebuf, int ebuflen)
 {
+	// @TODO: Change
   void * result = LoadLibrary(name);
-  if (result != NULL)
-  {
+  if (result != NULL) {
     return result;
   }
 

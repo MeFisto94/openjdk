@@ -24,6 +24,8 @@
 
 // MAIN.CPP - Entry point for the Architecture Description Language Compiler
 #include "adlc.hpp"
+#using <Windows.winmd>
+#using <Platform.winmd>
 
 //------------------------------Prototypes-------------------------------------
 static void  usage(ArchDesc& AD);          // Print usage message and exit
@@ -46,6 +48,7 @@ const char* get_basename(const char* filename) {
 }
 
 //------------------------------main-------------------------------------------
+[Platform::MTAThread] // WinRT (UWP) Feature
 int main(int argc, char *argv[])
 {
   ArchDesc      AD;             // Architecture Description object
