@@ -436,7 +436,7 @@ void OtherRegionsTable::add_reference(OopOrNarrowOopStar from, int tid) {
   int from_card = (int)(uintptr_t(from) >> CardTableModRefBS::card_shift);
 
   if (G1TraceHeapRegionRememberedSet) {
-    gclog_or_tty->print_cr("Table for [" PTR_FORMAT "...): card %d (cache = "INT32_FORMAT")",
+    gclog_or_tty->print_cr("Table for [" PTR_FORMAT "...): card %d (cache = " INT32_FORMAT ")",
                   hr()->bottom(), from_card,
                   FromCardCache::at((uint)tid, cur_hrm_ind));
   }
@@ -642,13 +642,13 @@ void OtherRegionsTable::scrub(CardTableModRefBS* ctbs,
 
   assert(_coarse_map.size() == region_bm->size(), "Precondition");
   if (G1RSScrubVerbose) {
-    gclog_or_tty->print("   Coarse map: before = "SIZE_FORMAT"...",
+    gclog_or_tty->print("   Coarse map: before = " SIZE_FORMAT "...",
                         _n_coarse_entries);
   }
   _coarse_map.set_intersection(*region_bm);
   _n_coarse_entries = _coarse_map.count_one_bits();
   if (G1RSScrubVerbose) {
-    gclog_or_tty->print_cr("   after = "SIZE_FORMAT".", _n_coarse_entries);
+    gclog_or_tty->print_cr("   after = " SIZE_FORMAT ".", _n_coarse_entries);
   }
 
   // Now do the fine-grained maps.

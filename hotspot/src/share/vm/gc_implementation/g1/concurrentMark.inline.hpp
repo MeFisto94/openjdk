@@ -343,7 +343,7 @@ inline void CMTask::make_reference_grey(oop obj, HeapRegion* hr) {
 
 inline void CMTask::deal_with_reference(oop obj) {
   if (_cm->verbose_high()) {
-    gclog_or_tty->print_cr("[%u] we're dealing with reference = "PTR_FORMAT,
+    gclog_or_tty->print_cr("[%u] we're dealing with reference = " PTR_FORMAT,
                            _worker_id, p2i((void*) obj));
   }
 

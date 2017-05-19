@@ -1405,8 +1405,8 @@ UNSAFE_END
 
 // These are the methods for 1.4.0
 static JNINativeMethod methods_140[] = {
-    {CC"getObject",        CC"("OBJ"I)"OBJ"",   FN_PTR(Unsafe_GetObject140)},
-    {CC"putObject",        CC"("OBJ"I"OBJ")V",  FN_PTR(Unsafe_SetObject140)},
+    {CC "getObject",        CC "(" OBJ "I)" OBJ "",   FN_PTR(Unsafe_GetObject140)},
+    {CC "putObject",        CC "(" OBJ "I" OBJ ")V",  FN_PTR(Unsafe_SetObject140)},
 
     DECLARE_GETSETOOP_140(Boolean, Z),
     DECLARE_GETSETOOP_140(Byte, B),
@@ -1425,33 +1425,33 @@ static JNINativeMethod methods_140[] = {
     DECLARE_GETSETNATIVE(Float, F),
     DECLARE_GETSETNATIVE(Double, D),
 
-    {CC"getAddress",         CC"("ADR")"ADR,             FN_PTR(Unsafe_GetNativeAddress)},
-    {CC"putAddress",         CC"("ADR""ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
+    {CC "getAddress",         CC"(" ADR")" ADR,             FN_PTR(Unsafe_GetNativeAddress)},
+    {CC "putAddress",         CC"(" ADR"" ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
 
-    {CC"allocateMemory",     CC"(J)"ADR,                 FN_PTR(Unsafe_AllocateMemory)},
-    {CC"reallocateMemory",   CC"("ADR"J)"ADR,            FN_PTR(Unsafe_ReallocateMemory)},
-    {CC"freeMemory",         CC"("ADR")V",               FN_PTR(Unsafe_FreeMemory)},
+    {CC "allocateMemory",     CC"(J)" ADR,                 FN_PTR(Unsafe_AllocateMemory)},
+    {CC "reallocateMemory",   CC"(" ADR"J)" ADR,            FN_PTR(Unsafe_ReallocateMemory)},
+    {CC "freeMemory",         CC"(" ADR")V",               FN_PTR(Unsafe_FreeMemory)},
 
-    {CC"fieldOffset",        CC"("FLD")I",               FN_PTR(Unsafe_FieldOffset)},
-    {CC"staticFieldBase",    CC"("CLS")"OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromClass)},
-    {CC"ensureClassInitialized",CC"("CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
-    {CC"arrayBaseOffset",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
-    {CC"arrayIndexScale",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
-    {CC"addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
-    {CC"pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
+    {CC "fieldOffset",        CC"(" FLD")I",               FN_PTR(Unsafe_FieldOffset)},
+    {CC "staticFieldBase",    CC"(" CLS")" OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromClass)},
+    {CC "ensureClassInitialized",CC"(" CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
+    {CC "arrayBaseOffset",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
+    {CC "arrayIndexScale",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
+    {CC "addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
+    {CC "pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
 
-    {CC"defineClass",        CC"("DC0_Args")"CLS,        FN_PTR(Unsafe_DefineClass0)},
-    {CC"defineClass",        CC"("DC_Args")"CLS,         FN_PTR(Unsafe_DefineClass)},
-    {CC"allocateInstance",   CC"("CLS")"OBJ,             FN_PTR(Unsafe_AllocateInstance)},
-    {CC"monitorEnter",       CC"("OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
-    {CC"monitorExit",        CC"("OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
-    {CC"throwException",     CC"("THR")V",               FN_PTR(Unsafe_ThrowException)}
+    {CC "defineClass",        CC"(" DC0_Args")" CLS,        FN_PTR(Unsafe_DefineClass0)},
+    {CC "defineClass",        CC"(" DC_Args")" CLS,         FN_PTR(Unsafe_DefineClass)},
+    {CC "allocateInstance",   CC"(" CLS")" OBJ,             FN_PTR(Unsafe_AllocateInstance)},
+    {CC "monitorEnter",       CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
+    {CC "monitorExit",        CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
+    {CC "throwException",     CC"(" THR")V",               FN_PTR(Unsafe_ThrowException)}
 };
 
 // These are the methods prior to the JSR 166 changes in 1.5.0
 static JNINativeMethod methods_141[] = {
-    {CC"getObject",        CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObject)},
-    {CC"putObject",        CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObject)},
+    {CC "getObject",        CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObject)},
+    {CC "putObject",        CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObject)},
 
     DECLARE_GETSETOOP_141(Boolean, Z),
     DECLARE_GETSETOOP_141(Byte, B),
@@ -1470,37 +1470,37 @@ static JNINativeMethod methods_141[] = {
     DECLARE_GETSETNATIVE(Float, F),
     DECLARE_GETSETNATIVE(Double, D),
 
-    {CC"getAddress",         CC"("ADR")"ADR,             FN_PTR(Unsafe_GetNativeAddress)},
-    {CC"putAddress",         CC"("ADR""ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
+    {CC "getAddress",         CC"(" ADR")" ADR,             FN_PTR(Unsafe_GetNativeAddress)},
+    {CC "putAddress",         CC"(" ADR"" ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
 
-    {CC"allocateMemory",     CC"(J)"ADR,                 FN_PTR(Unsafe_AllocateMemory)},
-    {CC"reallocateMemory",   CC"("ADR"J)"ADR,            FN_PTR(Unsafe_ReallocateMemory)},
-    {CC"freeMemory",         CC"("ADR")V",               FN_PTR(Unsafe_FreeMemory)},
+    {CC "allocateMemory",     CC"(J)" ADR,                 FN_PTR(Unsafe_AllocateMemory)},
+    {CC "reallocateMemory",   CC"(" ADR"J)" ADR,            FN_PTR(Unsafe_ReallocateMemory)},
+    {CC "freeMemory",         CC"(" ADR")V",               FN_PTR(Unsafe_FreeMemory)},
 
-    {CC"objectFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
-    {CC"staticFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
-    {CC"staticFieldBase",    CC"("FLD")"OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
-    {CC"ensureClassInitialized",CC"("CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
-    {CC"arrayBaseOffset",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
-    {CC"arrayIndexScale",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
-    {CC"addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
-    {CC"pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
+    {CC "objectFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
+    {CC "staticFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
+    {CC "staticFieldBase",    CC"(" FLD")" OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
+    {CC "ensureClassInitialized",CC"(" CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
+    {CC "arrayBaseOffset",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
+    {CC "arrayIndexScale",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
+    {CC "addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
+    {CC "pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
 
-    {CC"defineClass",        CC"("DC0_Args")"CLS,        FN_PTR(Unsafe_DefineClass0)},
-    {CC"defineClass",        CC"("DC_Args")"CLS,         FN_PTR(Unsafe_DefineClass)},
-    {CC"allocateInstance",   CC"("CLS")"OBJ,             FN_PTR(Unsafe_AllocateInstance)},
-    {CC"monitorEnter",       CC"("OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
-    {CC"monitorExit",        CC"("OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
-    {CC"throwException",     CC"("THR")V",               FN_PTR(Unsafe_ThrowException)}
+    {CC "defineClass",        CC"(" DC0_Args")" CLS,        FN_PTR(Unsafe_DefineClass0)},
+    {CC "defineClass",        CC"(" DC_Args")" CLS,         FN_PTR(Unsafe_DefineClass)},
+    {CC "allocateInstance",   CC"(" CLS")" OBJ,             FN_PTR(Unsafe_AllocateInstance)},
+    {CC "monitorEnter",       CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
+    {CC "monitorExit",        CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
+    {CC "throwException",     CC"(" THR")V",               FN_PTR(Unsafe_ThrowException)}
 
 };
 
 // These are the methods prior to the JSR 166 changes in 1.6.0
 static JNINativeMethod methods_15[] = {
-    {CC"getObject",        CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObject)},
-    {CC"putObject",        CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObject)},
-    {CC"getObjectVolatile",CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObjectVolatile)},
-    {CC"putObjectVolatile",CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObjectVolatile)},
+    {CC "getObject",        CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObject)},
+    {CC "putObject",        CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObject)},
+    {CC "getObjectVolatile",CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObjectVolatile)},
+    {CC "putObjectVolatile",CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObjectVolatile)},
 
 
     DECLARE_GETSETOOP(Boolean, Z),
@@ -1520,42 +1520,42 @@ static JNINativeMethod methods_15[] = {
     DECLARE_GETSETNATIVE(Float, F),
     DECLARE_GETSETNATIVE(Double, D),
 
-    {CC"getAddress",         CC"("ADR")"ADR,             FN_PTR(Unsafe_GetNativeAddress)},
-    {CC"putAddress",         CC"("ADR""ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
+    {CC "getAddress",         CC"(" ADR")" ADR,             FN_PTR(Unsafe_GetNativeAddress)},
+    {CC "putAddress",         CC"(" ADR"" ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
 
-    {CC"allocateMemory",     CC"(J)"ADR,                 FN_PTR(Unsafe_AllocateMemory)},
-    {CC"reallocateMemory",   CC"("ADR"J)"ADR,            FN_PTR(Unsafe_ReallocateMemory)},
-    {CC"freeMemory",         CC"("ADR")V",               FN_PTR(Unsafe_FreeMemory)},
+    {CC "allocateMemory",     CC"(J)" ADR,                 FN_PTR(Unsafe_AllocateMemory)},
+    {CC "reallocateMemory",   CC"(" ADR"J)" ADR,            FN_PTR(Unsafe_ReallocateMemory)},
+    {CC "freeMemory",         CC"(" ADR")V",               FN_PTR(Unsafe_FreeMemory)},
 
-    {CC"objectFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
-    {CC"staticFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
-    {CC"staticFieldBase",    CC"("FLD")"OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
-    {CC"ensureClassInitialized",CC"("CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
-    {CC"arrayBaseOffset",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
-    {CC"arrayIndexScale",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
-    {CC"addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
-    {CC"pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
+    {CC "objectFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
+    {CC "staticFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
+    {CC "staticFieldBase",    CC"(" FLD")" OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
+    {CC "ensureClassInitialized",CC"(" CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
+    {CC "arrayBaseOffset",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
+    {CC "arrayIndexScale",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
+    {CC "addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
+    {CC "pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
 
-    {CC"defineClass",        CC"("DC0_Args")"CLS,        FN_PTR(Unsafe_DefineClass0)},
-    {CC"defineClass",        CC"("DC_Args")"CLS,         FN_PTR(Unsafe_DefineClass)},
-    {CC"allocateInstance",   CC"("CLS")"OBJ,             FN_PTR(Unsafe_AllocateInstance)},
-    {CC"monitorEnter",       CC"("OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
-    {CC"monitorExit",        CC"("OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
-    {CC"throwException",     CC"("THR")V",               FN_PTR(Unsafe_ThrowException)},
-    {CC"compareAndSwapObject", CC"("OBJ"J"OBJ""OBJ")Z",  FN_PTR(Unsafe_CompareAndSwapObject)},
-    {CC"compareAndSwapInt",  CC"("OBJ"J""I""I"")Z",      FN_PTR(Unsafe_CompareAndSwapInt)},
-    {CC"compareAndSwapLong", CC"("OBJ"J""J""J"")Z",      FN_PTR(Unsafe_CompareAndSwapLong)},
-    {CC"park",               CC"(ZJ)V",                  FN_PTR(Unsafe_Park)},
-    {CC"unpark",             CC"("OBJ")V",               FN_PTR(Unsafe_Unpark)}
+    {CC "defineClass",        CC"(" DC0_Args")" CLS,        FN_PTR(Unsafe_DefineClass0)},
+    {CC "defineClass",        CC"(" DC_Args")" CLS,         FN_PTR(Unsafe_DefineClass)},
+    {CC "allocateInstance",   CC"(" CLS")" OBJ,             FN_PTR(Unsafe_AllocateInstance)},
+    {CC "monitorEnter",       CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
+    {CC "monitorExit",        CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
+    {CC "throwException",     CC"(" THR")V",               FN_PTR(Unsafe_ThrowException)},
+    {CC "compareAndSwapObject", CC"(" OBJ"J" OBJ"" OBJ")Z",  FN_PTR(Unsafe_CompareAndSwapObject)},
+    {CC "compareAndSwapInt",  CC"(" OBJ"J""I""I"")Z",      FN_PTR(Unsafe_CompareAndSwapInt)},
+    {CC "compareAndSwapLong", CC"(" OBJ"J""J""J"")Z",      FN_PTR(Unsafe_CompareAndSwapLong)},
+    {CC "park",               CC"(ZJ)V",                  FN_PTR(Unsafe_Park)},
+    {CC "unpark",             CC"(" OBJ")V",               FN_PTR(Unsafe_Unpark)}
 
 };
 
 // These are the methods for 1.6.0 and 1.7.0
 static JNINativeMethod methods_16[] = {
-    {CC"getObject",        CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObject)},
-    {CC"putObject",        CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObject)},
-    {CC"getObjectVolatile",CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObjectVolatile)},
-    {CC"putObjectVolatile",CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObjectVolatile)},
+    {CC "getObject",        CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObject)},
+    {CC "putObject",        CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObject)},
+    {CC "getObjectVolatile",CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObjectVolatile)},
+    {CC "putObjectVolatile",CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObjectVolatile)},
 
     DECLARE_GETSETOOP(Boolean, Z),
     DECLARE_GETSETOOP(Byte, B),
@@ -1574,45 +1574,45 @@ static JNINativeMethod methods_16[] = {
     DECLARE_GETSETNATIVE(Float, F),
     DECLARE_GETSETNATIVE(Double, D),
 
-    {CC"getAddress",         CC"("ADR")"ADR,             FN_PTR(Unsafe_GetNativeAddress)},
-    {CC"putAddress",         CC"("ADR""ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
+    {CC "getAddress",         CC"(" ADR")" ADR,             FN_PTR(Unsafe_GetNativeAddress)},
+    {CC "putAddress",         CC"(" ADR"" ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
 
-    {CC"allocateMemory",     CC"(J)"ADR,                 FN_PTR(Unsafe_AllocateMemory)},
-    {CC"reallocateMemory",   CC"("ADR"J)"ADR,            FN_PTR(Unsafe_ReallocateMemory)},
-    {CC"freeMemory",         CC"("ADR")V",               FN_PTR(Unsafe_FreeMemory)},
+    {CC "allocateMemory",     CC"(J)" ADR,                 FN_PTR(Unsafe_AllocateMemory)},
+    {CC "reallocateMemory",   CC"(" ADR"J)" ADR,            FN_PTR(Unsafe_ReallocateMemory)},
+    {CC "freeMemory",         CC"(" ADR")V",               FN_PTR(Unsafe_FreeMemory)},
 
-    {CC"objectFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
-    {CC"staticFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
-    {CC"staticFieldBase",    CC"("FLD")"OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
-    {CC"ensureClassInitialized",CC"("CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
-    {CC"arrayBaseOffset",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
-    {CC"arrayIndexScale",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
-    {CC"addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
-    {CC"pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
+    {CC "objectFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
+    {CC "staticFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
+    {CC "staticFieldBase",    CC"(" FLD")" OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
+    {CC "ensureClassInitialized",CC"(" CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
+    {CC "arrayBaseOffset",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
+    {CC "arrayIndexScale",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
+    {CC "addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
+    {CC "pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
 
-    {CC"defineClass",        CC"("DC0_Args")"CLS,        FN_PTR(Unsafe_DefineClass0)},
-    {CC"defineClass",        CC"("DC_Args")"CLS,         FN_PTR(Unsafe_DefineClass)},
-    {CC"allocateInstance",   CC"("CLS")"OBJ,             FN_PTR(Unsafe_AllocateInstance)},
-    {CC"monitorEnter",       CC"("OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
-    {CC"monitorExit",        CC"("OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
-    {CC"tryMonitorEnter",    CC"("OBJ")Z",               FN_PTR(Unsafe_TryMonitorEnter)},
-    {CC"throwException",     CC"("THR")V",               FN_PTR(Unsafe_ThrowException)},
-    {CC"compareAndSwapObject", CC"("OBJ"J"OBJ""OBJ")Z",  FN_PTR(Unsafe_CompareAndSwapObject)},
-    {CC"compareAndSwapInt",  CC"("OBJ"J""I""I"")Z",      FN_PTR(Unsafe_CompareAndSwapInt)},
-    {CC"compareAndSwapLong", CC"("OBJ"J""J""J"")Z",      FN_PTR(Unsafe_CompareAndSwapLong)},
-    {CC"putOrderedObject",   CC"("OBJ"J"OBJ")V",         FN_PTR(Unsafe_SetOrderedObject)},
-    {CC"putOrderedInt",      CC"("OBJ"JI)V",             FN_PTR(Unsafe_SetOrderedInt)},
-    {CC"putOrderedLong",     CC"("OBJ"JJ)V",             FN_PTR(Unsafe_SetOrderedLong)},
-    {CC"park",               CC"(ZJ)V",                  FN_PTR(Unsafe_Park)},
-    {CC"unpark",             CC"("OBJ")V",               FN_PTR(Unsafe_Unpark)}
+    {CC "defineClass",        CC"(" DC0_Args")" CLS,        FN_PTR(Unsafe_DefineClass0)},
+    {CC "defineClass",        CC"(" DC_Args")" CLS,         FN_PTR(Unsafe_DefineClass)},
+    {CC "allocateInstance",   CC"(" CLS")" OBJ,             FN_PTR(Unsafe_AllocateInstance)},
+    {CC "monitorEnter",       CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
+    {CC "monitorExit",        CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
+    {CC "tryMonitorEnter",    CC"(" OBJ")Z",               FN_PTR(Unsafe_TryMonitorEnter)},
+    {CC "throwException",     CC"(" THR")V",               FN_PTR(Unsafe_ThrowException)},
+    {CC "compareAndSwapObject", CC"(" OBJ"J" OBJ"" OBJ")Z",  FN_PTR(Unsafe_CompareAndSwapObject)},
+    {CC "compareAndSwapInt",  CC"(" OBJ"J""I""I"")Z",      FN_PTR(Unsafe_CompareAndSwapInt)},
+    {CC "compareAndSwapLong", CC"(" OBJ"J""J""J"")Z",      FN_PTR(Unsafe_CompareAndSwapLong)},
+    {CC "putOrderedObject",   CC"(" OBJ"J" OBJ")V",         FN_PTR(Unsafe_SetOrderedObject)},
+    {CC "putOrderedInt",      CC"(" OBJ"JI)V",             FN_PTR(Unsafe_SetOrderedInt)},
+    {CC "putOrderedLong",     CC"(" OBJ"JJ)V",             FN_PTR(Unsafe_SetOrderedLong)},
+    {CC "park",               CC"(ZJ)V",                  FN_PTR(Unsafe_Park)},
+    {CC "unpark",             CC"(" OBJ")V",               FN_PTR(Unsafe_Unpark)}
 };
 
 // These are the methods for 1.8.0
 static JNINativeMethod methods_18[] = {
-    {CC"getObject",        CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObject)},
-    {CC"putObject",        CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObject)},
-    {CC"getObjectVolatile",CC"("OBJ"J)"OBJ"",   FN_PTR(Unsafe_GetObjectVolatile)},
-    {CC"putObjectVolatile",CC"("OBJ"J"OBJ")V",  FN_PTR(Unsafe_SetObjectVolatile)},
+    {CC"getObject",        CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObject)},
+    {CC"putObject",        CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObject)},
+    {CC"getObjectVolatile",CC"(" OBJ"J)" OBJ"",   FN_PTR(Unsafe_GetObjectVolatile)},
+    {CC"putObjectVolatile",CC"(" OBJ"J" OBJ")V",  FN_PTR(Unsafe_SetObjectVolatile)},
 
     DECLARE_GETSETOOP(Boolean, Z),
     DECLARE_GETSETOOP(Byte, B),
@@ -1631,36 +1631,36 @@ static JNINativeMethod methods_18[] = {
     DECLARE_GETSETNATIVE(Float, F),
     DECLARE_GETSETNATIVE(Double, D),
 
-    {CC"getAddress",         CC"("ADR")"ADR,             FN_PTR(Unsafe_GetNativeAddress)},
-    {CC"putAddress",         CC"("ADR""ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
+    {CC"getAddress",         CC"(" ADR")" ADR,             FN_PTR(Unsafe_GetNativeAddress)},
+    {CC"putAddress",         CC"(" ADR"" ADR")V",          FN_PTR(Unsafe_SetNativeAddress)},
 
-    {CC"allocateMemory",     CC"(J)"ADR,                 FN_PTR(Unsafe_AllocateMemory)},
-    {CC"reallocateMemory",   CC"("ADR"J)"ADR,            FN_PTR(Unsafe_ReallocateMemory)},
-    {CC"freeMemory",         CC"("ADR")V",               FN_PTR(Unsafe_FreeMemory)},
+    {CC"allocateMemory",     CC"(J)" ADR,                 FN_PTR(Unsafe_AllocateMemory)},
+    {CC"reallocateMemory",   CC"(" ADR"J)" ADR,            FN_PTR(Unsafe_ReallocateMemory)},
+    {CC"freeMemory",         CC"(" ADR")V",               FN_PTR(Unsafe_FreeMemory)},
 
-    {CC"objectFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
-    {CC"staticFieldOffset",  CC"("FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
-    {CC"staticFieldBase",    CC"("FLD")"OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
-    {CC"ensureClassInitialized",CC"("CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
-    {CC"arrayBaseOffset",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
-    {CC"arrayIndexScale",    CC"("CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
+    {CC"objectFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_ObjectFieldOffset)},
+    {CC"staticFieldOffset",  CC"(" FLD")J",               FN_PTR(Unsafe_StaticFieldOffset)},
+    {CC"staticFieldBase",    CC"(" FLD")" OBJ,             FN_PTR(Unsafe_StaticFieldBaseFromField)},
+    {CC"ensureClassInitialized",CC"(" CLS")V",            FN_PTR(Unsafe_EnsureClassInitialized)},
+    {CC"arrayBaseOffset",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayBaseOffset)},
+    {CC"arrayIndexScale",    CC"(" CLS")I",               FN_PTR(Unsafe_ArrayIndexScale)},
     {CC"addressSize",        CC"()I",                    FN_PTR(Unsafe_AddressSize)},
     {CC"pageSize",           CC"()I",                    FN_PTR(Unsafe_PageSize)},
 
-    {CC"defineClass",        CC"("DC_Args")"CLS,         FN_PTR(Unsafe_DefineClass)},
-    {CC"allocateInstance",   CC"("CLS")"OBJ,             FN_PTR(Unsafe_AllocateInstance)},
-    {CC"monitorEnter",       CC"("OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
-    {CC"monitorExit",        CC"("OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
-    {CC"tryMonitorEnter",    CC"("OBJ")Z",               FN_PTR(Unsafe_TryMonitorEnter)},
-    {CC"throwException",     CC"("THR")V",               FN_PTR(Unsafe_ThrowException)},
-    {CC"compareAndSwapObject", CC"("OBJ"J"OBJ""OBJ")Z",  FN_PTR(Unsafe_CompareAndSwapObject)},
-    {CC"compareAndSwapInt",  CC"("OBJ"J""I""I"")Z",      FN_PTR(Unsafe_CompareAndSwapInt)},
-    {CC"compareAndSwapLong", CC"("OBJ"J""J""J"")Z",      FN_PTR(Unsafe_CompareAndSwapLong)},
-    {CC"putOrderedObject",   CC"("OBJ"J"OBJ")V",         FN_PTR(Unsafe_SetOrderedObject)},
-    {CC"putOrderedInt",      CC"("OBJ"JI)V",             FN_PTR(Unsafe_SetOrderedInt)},
-    {CC"putOrderedLong",     CC"("OBJ"JJ)V",             FN_PTR(Unsafe_SetOrderedLong)},
+    {CC"defineClass",        CC"(" DC_Args")" CLS,         FN_PTR(Unsafe_DefineClass)},
+    {CC"allocateInstance",   CC"(" CLS")" OBJ,             FN_PTR(Unsafe_AllocateInstance)},
+    {CC"monitorEnter",       CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorEnter)},
+    {CC"monitorExit",        CC"(" OBJ")V",               FN_PTR(Unsafe_MonitorExit)},
+    {CC"tryMonitorEnter",    CC"(" OBJ")Z",               FN_PTR(Unsafe_TryMonitorEnter)},
+    {CC"throwException",     CC"(" THR")V",               FN_PTR(Unsafe_ThrowException)},
+    {CC"compareAndSwapObject", CC"(" OBJ"J" OBJ"" OBJ")Z",  FN_PTR(Unsafe_CompareAndSwapObject)},
+    {CC"compareAndSwapInt",  CC"(" OBJ"J""I""I"")Z",      FN_PTR(Unsafe_CompareAndSwapInt)},
+    {CC"compareAndSwapLong", CC"(" OBJ"J""J""J"")Z",      FN_PTR(Unsafe_CompareAndSwapLong)},
+    {CC"putOrderedObject",   CC"(" OBJ"J" OBJ")V",         FN_PTR(Unsafe_SetOrderedObject)},
+    {CC"putOrderedInt",      CC"(" OBJ"JI)V",             FN_PTR(Unsafe_SetOrderedInt)},
+    {CC"putOrderedLong",     CC"(" OBJ"JJ)V",             FN_PTR(Unsafe_SetOrderedLong)},
     {CC"park",               CC"(ZJ)V",                  FN_PTR(Unsafe_Park)},
-    {CC"unpark",             CC"("OBJ")V",               FN_PTR(Unsafe_Unpark)}
+    {CC"unpark",             CC"(" OBJ")V",               FN_PTR(Unsafe_Unpark)}
 };
 
 JNINativeMethod loadavg_method[] = {
@@ -1668,28 +1668,28 @@ JNINativeMethod loadavg_method[] = {
 };
 
 JNINativeMethod prefetch_methods[] = {
-    {CC"prefetchRead",       CC"("OBJ"J)V",              FN_PTR(Unsafe_PrefetchRead)},
-    {CC"prefetchWrite",      CC"("OBJ"J)V",              FN_PTR(Unsafe_PrefetchWrite)},
-    {CC"prefetchReadStatic", CC"("OBJ"J)V",              FN_PTR(Unsafe_PrefetchRead)},
-    {CC"prefetchWriteStatic",CC"("OBJ"J)V",              FN_PTR(Unsafe_PrefetchWrite)}
+    {CC"prefetchRead",       CC"(" OBJ"J)V",              FN_PTR(Unsafe_PrefetchRead)},
+    {CC"prefetchWrite",      CC"(" OBJ"J)V",              FN_PTR(Unsafe_PrefetchWrite)},
+    {CC"prefetchReadStatic", CC"(" OBJ"J)V",              FN_PTR(Unsafe_PrefetchRead)},
+    {CC"prefetchWriteStatic",CC"(" OBJ"J)V",              FN_PTR(Unsafe_PrefetchWrite)}
 };
 
 JNINativeMethod memcopy_methods_17[] = {
-    {CC"copyMemory",         CC"("OBJ"J"OBJ"JJ)V",       FN_PTR(Unsafe_CopyMemory2)},
-    {CC"setMemory",          CC"("OBJ"JJB)V",            FN_PTR(Unsafe_SetMemory2)}
+    {CC"copyMemory",         CC"(" OBJ"J" OBJ"JJ)V",       FN_PTR(Unsafe_CopyMemory2)},
+    {CC"setMemory",          CC"(" OBJ"JJB)V",            FN_PTR(Unsafe_SetMemory2)}
 };
 
 JNINativeMethod memcopy_methods_15[] = {
-    {CC"setMemory",          CC"("ADR"JB)V",             FN_PTR(Unsafe_SetMemory)},
-    {CC"copyMemory",         CC"("ADR ADR"J)V",          FN_PTR(Unsafe_CopyMemory)}
+    {CC"setMemory",          CC"(" ADR"JB)V",             FN_PTR(Unsafe_SetMemory)},
+    {CC"copyMemory",         CC"(" ADR ADR"J)V",          FN_PTR(Unsafe_CopyMemory)}
 };
 
 JNINativeMethod anonk_methods[] = {
-    {CC"defineAnonymousClass", CC"("DAC_Args")"CLS,      FN_PTR(Unsafe_DefineAnonymousClass)},
+    {CC"defineAnonymousClass", CC"(" DAC_Args")" CLS,      FN_PTR(Unsafe_DefineAnonymousClass)},
 };
 
 JNINativeMethod lform_methods[] = {
-    {CC"shouldBeInitialized",CC"("CLS")Z",               FN_PTR(Unsafe_ShouldBeInitialized)},
+    {CC"shouldBeInitialized",CC"(" CLS")Z",               FN_PTR(Unsafe_ShouldBeInitialized)},
 };
 
 JNINativeMethod fence_methods[] = {

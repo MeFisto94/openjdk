@@ -914,7 +914,7 @@ void ThreadSafepointState::restart() {
 
     case _running:
     default:
-       tty->print_cr("restart thread "INTPTR_FORMAT" with state %d",
+       tty->print_cr("restart thread " INTPTR_FORMAT " with state %d",
                       _thread, _type);
        _thread->print();
       ShouldNotReachHere();
@@ -1271,14 +1271,14 @@ void SafepointSynchronize::print_stat_on_exit() {
 
   for (int index = 0; index < VM_Operation::VMOp_Terminating; index++) {
     if (_safepoint_reasons[index] != 0) {
-      tty->print_cr("%-26s"UINT64_FORMAT_W(10), VM_Operation::name(index),
+      tty->print_cr("%-26s" UINT64_FORMAT_W(10), VM_Operation::name(index),
                     _safepoint_reasons[index]);
     }
   }
 
   tty->print_cr(UINT64_FORMAT_W(5)" VM operations coalesced during safepoint",
                 _coalesced_vmop_count);
-  tty->print_cr("Maximum sync time  "INT64_FORMAT_W(5)" ms",
+  tty->print_cr("Maximum sync time  " INT64_FORMAT_W(5)" ms",
                 _max_sync_time / MICROUNITS);
   tty->print_cr("Maximum vm operation time (except for Exit VM operation)  "
                 INT64_FORMAT_W(5)" ms",

@@ -140,7 +140,7 @@ HeapWord* G1AllocRegion::new_alloc_region_and_allocate(size_t word_size,
 }
 
 void G1AllocRegion::fill_in_ext_msg(ar_ext_msg* msg, const char* message) {
-  msg->append("[%s] %s c: %u b: %s r: "PTR_FORMAT" u: "SIZE_FORMAT,
+  msg->append("[%s] %s c: %u b: %s r: " PTR_FORMAT " u: " SIZE_FORMAT,
               _name, message, _count, BOOL_TO_STR(_bot_updates),
               p2i(_alloc_region), _used_bytes_before);
 }

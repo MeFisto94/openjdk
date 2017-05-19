@@ -39,32 +39,33 @@ class TraceStream : public StackObj {
  public:
   TraceStream(outputStream& stream): _st(stream) {}
 
+  /* Space required, because of user-defined literals, http://stackoverflow.com/questions/31738796/using-macro-with-string-fails-on-vc-2015*/
   void print_val(const char* label, u1 val) {
-    _st.print("%s = "UINT32_FORMAT, label, val);
+    _st.print("%s = " UINT32_FORMAT, label, val);
   }
 
   void print_val(const char* label, u2 val) {
-    _st.print("%s = "UINT32_FORMAT, label, val);
+    _st.print("%s = " UINT32_FORMAT, label, val);
   }
 
   void print_val(const char* label, s2 val) {
-    _st.print("%s = "INT32_FORMAT, label, val);
+    _st.print("%s = " INT32_FORMAT, label, val);
   }
 
   void print_val(const char* label, u4 val) {
-    _st.print("%s = "UINT32_FORMAT, label, val);
+    _st.print("%s = " UINT32_FORMAT, label, val);
   }
 
   void print_val(const char* label, s4 val) {
-    _st.print("%s = "INT32_FORMAT, label, val);
+    _st.print("%s = " INT32_FORMAT, label, val);
   }
 
   void print_val(const char* label, u8 val) {
-    _st.print("%s = "UINT64_FORMAT, label, val);
+    _st.print("%s = " UINT64_FORMAT, label, val);
   }
 
   void print_val(const char* label, s8 val) {
-    _st.print("%s = "INT64_FORMAT, label, (int64_t) val);
+    _st.print("%s = " INT64_FORMAT, label, (int64_t) val);
   }
 
   void print_val(const char* label, bool val) {

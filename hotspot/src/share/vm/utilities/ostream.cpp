@@ -945,7 +945,7 @@ void defaultStream::start_log() {
     // %%% Should be: jlong time_ms = os::start_time_milliseconds(), if
     // we ever get round to introduce that method on the os class
     xs->head("hotspot_log version='%d %d'"
-             " process='%d' time_ms='"INT64_FORMAT"'",
+             " process='%d' time_ms='" INT64_FORMAT "'",
              LOG_MAJOR_VERSION, LOG_MINOR_VERSION,
              os::current_process_id(), (int64_t)time_ms);
     // Write VM version header immediately.

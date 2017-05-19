@@ -230,7 +230,7 @@ bool YoungList::check_list_well_formed() {
   HeapRegion* last = NULL;
   while (curr != NULL) {
     if (!curr->is_young()) {
-      gclog_or_tty->print_cr("### YOUNG REGION "PTR_FORMAT"-"PTR_FORMAT" "
+      gclog_or_tty->print_cr("### YOUNG REGION " PTR_FORMAT "-" PTR_FORMAT " "
                              "incorrectly tagged (y: %d, surv: %d)",
                              curr->bottom(), curr->end(),
                              curr->is_young(), curr->is_survivor());
@@ -359,7 +359,7 @@ void YoungList::print() {
     if (curr == NULL)
       gclog_or_tty->print_cr("  empty");
     while (curr != NULL) {
-      gclog_or_tty->print_cr("  "HR_FORMAT", P: "PTR_FORMAT ", N: "PTR_FORMAT", age: %4d",
+      gclog_or_tty->print_cr("  " HR_FORMAT ", P: " PTR_FORMAT ", N: " PTR_FORMAT ", age: %4d",
                              HR_FORMAT_PARAMS(curr),
                              curr->prev_top_at_mark_start(),
                              curr->next_top_at_mark_start(),
@@ -528,7 +528,7 @@ G1CollectedHeap::new_region_try_secondary_free_list(bool is_old) {
       HeapRegion* res = _hrm.allocate_free_region(is_old);
       if (G1ConcRegionFreeingVerbose) {
         gclog_or_tty->print_cr("G1ConcRegionFreeing [region alloc] : "
-                               "allocated "HR_FORMAT" from secondary_free_list",
+                               "allocated " HR_FORMAT " from secondary_free_list",
                                HR_FORMAT_PARAMS(res));
       }
       return res;
@@ -2991,10 +2991,10 @@ public:
     if (!oopDesc::is_null(heap_oop)) {
       oop obj = oopDesc::decode_heap_oop_not_null(heap_oop);
       if (_g1h->is_obj_dead_cond(obj, _vo)) {
-        gclog_or_tty->print_cr("Root location "PTR_FORMAT" "
-                              "points to dead obj "PTR_FORMAT, p, (void*) obj);
+        gclog_or_tty->print_cr("Root location " PTR_FORMAT " "
+                              "points to dead obj " PTR_FORMAT, p, (void*) obj);
         if (_vo == VerifyOption_G1UseMarkWord) {
-          gclog_or_tty->print_cr("  Mark word: "PTR_FORMAT, (void*)(obj->mark()));
+          gclog_or_tty->print_cr("  Mark word: " PTR_FORMAT, (void*)(obj->mark()));
         }
         obj->print_on(gclog_or_tty);
         _failures = true;
@@ -3041,9 +3041,9 @@ class G1VerifyCodeRootOopClosure: public OopClosure {
       // Verify that the strong code root list for this region
       // contains the nmethod
       if (!hrrs->strong_code_roots_list_contains(_nm)) {
-        gclog_or_tty->print_cr("Code root location "PTR_FORMAT" "
-                              "from nmethod "PTR_FORMAT" not in strong "
-                              "code roots for region ["PTR_FORMAT","PTR_FORMAT")",
+        gclog_or_tty->print_cr("Code root location " PTR_FORMAT " "
+                              "from nmethod " PTR_FORMAT " not in strong "
+                              "code roots for region [" PTR_FORMAT "," PTR_FORMAT ")",
                               p, _nm, hr->bottom(), hr->end());
         _failures = true;
       }
@@ -3173,7 +3173,7 @@ public:
     if (o != NULL) {
       HeapWord *start = (HeapWord *) o;
       size_t word_sz = o->size();
-      gclog_or_tty->print("\nPrinting obj "PTR_FORMAT" of size " SIZE_FORMAT
+      gclog_or_tty->print("\nPrinting obj " PTR_FORMAT " of size " SIZE_FORMAT
                           " isMarkedPrev %d isMarkedNext %d isAllocSince %d\n",
                           (void*) o, word_sz,
                           _g1->isMarkedPrev(o),
@@ -3184,7 +3184,7 @@ public:
       int *val;
       for (cur = start; cur < end; cur++) {
         val = (int *) cur;
-        gclog_or_tty->print("\t "PTR_FORMAT":"PTR_FORMAT"\n", val, *val);
+        gclog_or_tty->print("\t " PTR_FORMAT ":" PTR_FORMAT "\n", val, *val);
       }
     }
   }
@@ -3219,9 +3219,9 @@ public:
         r->object_iterate(&not_dead_yet_cl);
         if (_vo != VerifyOption_G1UseNextMarking) {
           if (r->max_live_bytes() < not_dead_yet_cl.live_bytes()) {
-            gclog_or_tty->print_cr("["PTR_FORMAT","PTR_FORMAT"] "
-                                   "max_live_bytes "SIZE_FORMAT" "
-                                   "< calculated "SIZE_FORMAT,
+            gclog_or_tty->print_cr("[" PTR_FORMAT"," PTR_FORMAT"] "
+                                   "max_live_bytes " SIZE_FORMAT" "
+                                   "< calculated " SIZE_FORMAT,
                                    r->bottom(), r->end(),
                                    r->max_live_bytes(),
                                  not_dead_yet_cl.live_bytes());
@@ -4845,8 +4845,8 @@ public:
 
     if (G1TraceStringSymbolTableScrubbing) {
       gclog_or_tty->print_cr("Cleaned string and symbol table, "
-                             "strings: "SIZE_FORMAT" processed, "SIZE_FORMAT" removed, "
-                             "symbols: "SIZE_FORMAT" processed, "SIZE_FORMAT" removed",
+                             "strings: " SIZE_FORMAT" processed, " SIZE_FORMAT" removed, "
+                             "symbols: " SIZE_FORMAT" processed, " SIZE_FORMAT" removed",
                              strings_processed(), strings_removed(),
                              symbols_processed(), symbols_removed());
     }
@@ -6373,7 +6373,7 @@ class G1FreeHumongousRegionClosure : public HeapRegionClosure {
         !r->rem_set()->is_empty()) {
 
       if (G1TraceEagerReclaimHumongousObjects) {
-        gclog_or_tty->print_cr("Live humongous region %u size "SIZE_FORMAT" start "PTR_FORMAT" length "UINT32_FORMAT" with remset "SIZE_FORMAT" code roots "SIZE_FORMAT" is marked %d reclaim candidate %d type array %d",
+        gclog_or_tty->print_cr("Live humongous region %u size " SIZE_FORMAT " start " PTR_FORMAT " length " UINT32_FORMAT " with remset " SIZE_FORMAT " code roots " SIZE_FORMAT " is marked %d reclaim candidate %d type array %d",
                                region_idx,
                                obj->size()*HeapWordSize,
                                r->bottom(),
@@ -6395,7 +6395,7 @@ class G1FreeHumongousRegionClosure : public HeapRegionClosure {
                       r->bottom()));
 
     if (G1TraceEagerReclaimHumongousObjects) {
-      gclog_or_tty->print_cr("Dead humongous region %u size "SIZE_FORMAT" start "PTR_FORMAT" length "UINT32_FORMAT" with remset "SIZE_FORMAT" code roots "SIZE_FORMAT" is marked %d reclaim candidate %d type array %d",
+      gclog_or_tty->print_cr("Dead humongous region %u size " SIZE_FORMAT " start " PTR_FORMAT " length " UINT32_FORMAT " with remset " SIZE_FORMAT " code roots " SIZE_FORMAT " is marked %d reclaim candidate %d type array %d",
                              region_idx,
                              obj->size()*HeapWordSize,
                              r->bottom(),
@@ -6551,7 +6551,7 @@ public:
   NoYoungRegionsClosure() : _success(true) { }
   bool doHeapRegion(HeapRegion* r) {
     if (r->is_young()) {
-      gclog_or_tty->print_cr("Region ["PTR_FORMAT", "PTR_FORMAT") tagged as young",
+      gclog_or_tty->print_cr("Region [" PTR_FORMAT ", " PTR_FORMAT ") tagged as young",
                              r->bottom(), r->end());
       _success = false;
     }

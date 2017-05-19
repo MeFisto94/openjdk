@@ -581,7 +581,7 @@ ConcurrentMark::ConcurrentMark(G1CollectedHeap* g1h, G1RegionToSpaceMapper* prev
   _verbose_level = verbose_level;
 
   if (verbose_low()) {
-    gclog_or_tty->print_cr("[global] init, heap start = "PTR_FORMAT", "
+    gclog_or_tty->print_cr("[global] init, heap start = " PTR_FORMAT ", "
                            "heap end = " INTPTR_FORMAT, p2i(_heap_start), p2i(_heap_end));
   }
 
@@ -2277,7 +2277,7 @@ class G1CMKeepAliveAndDrainClosure: public OopClosure {
       oop obj = oopDesc::load_decode_heap_oop(p);
       if (_cm->verbose_high()) {
         gclog_or_tty->print_cr("\t[%u] we're looking at location "
-                               "*"PTR_FORMAT" = "PTR_FORMAT,
+                               "*" PTR_FORMAT" = " PTR_FORMAT,
                                _task->worker_id(), p2i(p), p2i((void*) obj));
       }
 
@@ -3018,9 +3018,9 @@ ConcurrentMark::claim_region(uint worker_id) {
       HeapWord*   limit         = curr_region->next_top_at_mark_start();
 
       if (verbose_low()) {
-        gclog_or_tty->print_cr("[%u] curr_region = "PTR_FORMAT" "
-                               "["PTR_FORMAT", "PTR_FORMAT"), "
-                               "limit = "PTR_FORMAT,
+        gclog_or_tty->print_cr("[%u] curr_region = " PTR_FORMAT " "
+                               "[" PTR_FORMAT ", " PTR_FORMAT "), "
+                               "limit = " PTR_FORMAT,
                                worker_id, p2i(curr_region), p2i(bottom), p2i(end), p2i(limit));
       }
 
@@ -3035,7 +3035,7 @@ ConcurrentMark::claim_region(uint worker_id) {
 
       if (limit > bottom) {
         if (verbose_low()) {
-          gclog_or_tty->print_cr("[%u] region "PTR_FORMAT" is not empty, "
+          gclog_or_tty->print_cr("[%u] region " PTR_FORMAT " is not empty, "
                                  "returning it ", worker_id, p2i(curr_region));
         }
         return curr_region;
@@ -3043,7 +3043,7 @@ ConcurrentMark::claim_region(uint worker_id) {
         assert(limit == bottom,
                "the region limit should be at bottom");
         if (verbose_low()) {
-          gclog_or_tty->print_cr("[%u] region "PTR_FORMAT" is empty, "
+          gclog_or_tty->print_cr("[%u] region " PTR_FORMAT " is empty, "
                                  "returning NULL", worker_id, p2i(curr_region));
         }
         // we return NULL and the caller should try calling
@@ -3055,13 +3055,13 @@ ConcurrentMark::claim_region(uint worker_id) {
       if (verbose_low()) {
         if (curr_region == NULL) {
           gclog_or_tty->print_cr("[%u] found uncommitted region, moving finger, "
-                                 "global finger = "PTR_FORMAT", "
-                                 "our finger = "PTR_FORMAT,
+                                 "global finger = " PTR_FORMAT ", "
+                                 "our finger = " PTR_FORMAT,
                                  worker_id, p2i(_finger), p2i(finger));
         } else {
           gclog_or_tty->print_cr("[%u] somebody else moved the finger, "
-                                 "global finger = "PTR_FORMAT", "
-                                 "our finger = "PTR_FORMAT,
+                                 "global finger = " PTR_FORMAT ", "
+                                 "our finger = " PTR_FORMAT,
                                  worker_id, p2i(_finger), p2i(finger));
         }
       }
@@ -3579,7 +3579,7 @@ void CMTask::setup_for_region(HeapRegion* hr) {
         "claim_region() should have filtered out continues humongous regions");
 
   if (_cm->verbose_low()) {
-    gclog_or_tty->print_cr("[%u] setting up for region "PTR_FORMAT,
+    gclog_or_tty->print_cr("[%u] setting up for region " PTR_FORMAT,
                            _worker_id, p2i(hr));
   }
 
@@ -3596,7 +3596,7 @@ void CMTask::update_region_limit() {
   if (limit == bottom) {
     if (_cm->verbose_low()) {
       gclog_or_tty->print_cr("[%u] found an empty region "
-                             "["PTR_FORMAT", "PTR_FORMAT")",
+                             "[" PTR_FORMAT ", " PTR_FORMAT ")",
                              _worker_id, p2i(bottom), p2i(limit));
     }
     // The region was collected underneath our feet.
@@ -3628,7 +3628,7 @@ void CMTask::update_region_limit() {
 void CMTask::giveup_current_region() {
   assert(_curr_region != NULL, "invariant");
   if (_cm->verbose_low()) {
-    gclog_or_tty->print_cr("[%u] giving up region "PTR_FORMAT,
+    gclog_or_tty->print_cr("[%u] giving up region " PTR_FORMAT,
                            _worker_id, p2i(_curr_region));
   }
   clear_region_fields();
@@ -3919,7 +3919,7 @@ void CMTask::drain_local_queue(bool partially) {
       statsOnly( ++_local_pops );
 
       if (_cm->verbose_high()) {
-        gclog_or_tty->print_cr("[%u] popped "PTR_FORMAT, _worker_id,
+        gclog_or_tty->print_cr("[%u] popped " PTR_FORMAT, _worker_id,
                                p2i((void*) obj));
       }
 
@@ -4272,8 +4272,8 @@ void CMTask::do_marking_step(double time_target_ms,
 
       if (_cm->verbose_low()) {
         gclog_or_tty->print_cr("[%u] we're scanning part "
-                               "["PTR_FORMAT", "PTR_FORMAT") "
-                               "of region "HR_FORMAT,
+                               "[" PTR_FORMAT ", " PTR_FORMAT ") "
+                               "of region " HR_FORMAT,
                                _worker_id, p2i(_finger), p2i(_region_limit),
                                HR_FORMAT_PARAMS(_curr_region));
       }
@@ -4360,7 +4360,7 @@ void CMTask::do_marking_step(double time_target_ms,
 
         if (_cm->verbose_low()) {
           gclog_or_tty->print_cr("[%u] we successfully claimed "
-                                 "region "PTR_FORMAT,
+                                 "region " PTR_FORMAT,
                                  _worker_id, p2i(claimed_region));
         }
 
@@ -4421,7 +4421,7 @@ void CMTask::do_marking_step(double time_target_ms,
 
       if (_cm->try_stealing(_worker_id, &_hash_seed, obj)) {
         if (_cm->verbose_medium()) {
-          gclog_or_tty->print_cr("[%u] stolen "PTR_FORMAT" successfully",
+          gclog_or_tty->print_cr("[%u] stolen " PTR_FORMAT " successfully",
                                  _worker_id, p2i((void*) obj));
         }
 

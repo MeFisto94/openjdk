@@ -199,7 +199,7 @@ G1CollectorPolicy::G1CollectorPolicy() :
   const size_t region_size = HeapRegion::GrainWords;
   if (YoungPLABSize > region_size || OldPLABSize > region_size) {
     char buffer[128];
-    jio_snprintf(buffer, sizeof(buffer), "%sPLABSize should be at most "SIZE_FORMAT,
+    jio_snprintf(buffer, sizeof(buffer), "%sPLABSize should be at most " SIZE_FORMAT,
                  OldPLABSize > region_size ? "Old" : "Young", region_size);
     vm_exit_during_initialization(buffer);
   }
@@ -1231,10 +1231,10 @@ void G1CollectorPolicy::print_detailed_heap_transition(bool full) {
     (_young_list_target_length * HeapRegion::GrainBytes) - survivor_used_bytes_after_gc;
 
   gclog_or_tty->print(
-    "   [Eden: "EXT_SIZE_FORMAT"("EXT_SIZE_FORMAT")->"EXT_SIZE_FORMAT"("EXT_SIZE_FORMAT") "
-    "Survivors: "EXT_SIZE_FORMAT"->"EXT_SIZE_FORMAT" "
-    "Heap: "EXT_SIZE_FORMAT"("EXT_SIZE_FORMAT")->"
-    EXT_SIZE_FORMAT"("EXT_SIZE_FORMAT")]",
+    "   [Eden: " EXT_SIZE_FORMAT "(" EXT_SIZE_FORMAT ")->" EXT_SIZE_FORMAT "(" EXT_SIZE_FORMAT ") "
+    "Survivors: " EXT_SIZE_FORMAT "->" EXT_SIZE_FORMAT" "
+    "Heap: " EXT_SIZE_FORMAT "(" EXT_SIZE_FORMAT ")->"
+    EXT_SIZE_FORMAT"(" EXT_SIZE_FORMAT ")]",
     EXT_SIZE_PARAMS(_eden_used_bytes_before_gc),
     EXT_SIZE_PARAMS(_eden_capacity_bytes_before_gc),
     EXT_SIZE_PARAMS(eden_used_bytes_after_gc),

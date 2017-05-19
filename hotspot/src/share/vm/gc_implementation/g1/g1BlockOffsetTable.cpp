@@ -385,11 +385,11 @@ G1BlockOffsetArray::verify_for_object(HeapWord* obj_start,
     HeapWord* card_addr = _array->address_for_index(card);
     HeapWord* block_start = block_start_const(card_addr);
     if (block_start != obj_start) {
-      gclog_or_tty->print_cr("block start: "PTR_FORMAT" is incorrect - "
-                             "card index: "SIZE_FORMAT" "
-                             "card addr: "PTR_FORMAT" BOT entry: %u "
-                             "obj: "PTR_FORMAT" word size: "SIZE_FORMAT" "
-                             "cards: ["SIZE_FORMAT","SIZE_FORMAT"]",
+      gclog_or_tty->print_cr("block start: " PTR_FORMAT " is incorrect - "
+                             "card index: " SIZE_FORMAT " "
+                             "card addr: " PTR_FORMAT " BOT entry: %u "
+                             "obj: " PTR_FORMAT " word size: " SIZE_FORMAT " "
+                             "cards: [" SIZE_FORMAT "," SIZE_FORMAT "]",
                              block_start, card, card_addr,
                              _array->offset_array(card),
                              obj_start, word_size, first_card, last_card);
