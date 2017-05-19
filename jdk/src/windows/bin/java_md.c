@@ -275,8 +275,11 @@ LoadMSVCRT()
 #if _MSC_VER < 1400
 #define CRT_DLL "msvcr71.dll"
 #endif
-#if _MSC_VER >= 1600
+#if _MSC_VER >= 1600 && _MSC_VER < 1900
 #define CRT_DLL "msvcr100.dll"
+#endif
+#if _MSC_VER >= 1900
+#define CRT_DLL "msvcr140.dll"
 #endif
 #ifdef CRT_DLL
         if (GetJREPath(crtpath, MAXPATHLEN)) {
