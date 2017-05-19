@@ -148,6 +148,9 @@ COPYRIGHT_YEAR:=@COPYRIGHT_YEAR@
 # Location where build customization files may be found
 CUSTOM_MAKE_DIR:=@CUSTOM_MAKE_DIR@
 
+# Important for UWP/WINRT
+PLATFORM_WINMD=@PLATFORM_WINMD@
+
 # Information gathered from the version.numbers file.
 JDK_MAJOR_VERSION:=@JDK_MAJOR_VERSION@
 JDK_MINOR_VERSION:=@JDK_MINOR_VERSION@
