@@ -37,7 +37,8 @@ default:: $(BUILD_PCH_FILE) $(AOUT) checkAndBuildSA
 !include ../local.make
 !include compile.make
 
-CXX_FLAGS=$(CXX_FLAGS) $(PRODUCT_OPT_OPTION)
+PLATFORM_WINMD = /AI"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x86\store\references"
+CXX_FLAGS=$(CXX_FLAGS) $(PLATFORM_WINMD) /EHsc $(PRODUCT_OPT_OPTION)
 
 RELEASE=
 
@@ -51,9 +52,9 @@ HS_BUILD_ID=$(HS_BUILD_VER)
 # Force resources to be rebuilt every time
 $(Res_Files): FORCE
 
-$(AOUT): $(Res_Files) $(Obj_Files) vm.def
+$(AOUT): $(Res_Files) $(Obj_Files) $(BUILD_PCH_FILE) vm.def
 	$(LD) @<<
-  $(LD_FLAGS) /out:$@ /implib:$*.lib /def:vm.def $(Obj_Files) $(Res_Files)
+  $(LD_FLAGS) /MANIFEST /out:$@ /implib:$*.lib /def:vm.def $(Obj_Files) $(BUILD_PCH_FILE) $(Res_Files)
 <<
 !if "$(MT)" != ""
 # The previous link command created a .manifest file that we want to

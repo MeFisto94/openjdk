@@ -32,6 +32,7 @@ CXX=cl.exe
 #   /W3       Warning level 3
 #   /Zi       Include debugging information
 #   /WX       Treat any warning error as a fatal error
+#   /ZW		  Compile in UWP Mode
 #   /MD       Use dynamic multi-threaded runtime (msvcrt.dll or msvc*NN.dll)
 #   /MTd      Use static multi-threaded runtime debug versions
 #   /O1       Optimize for size (/Os), skips /Oi
@@ -53,7 +54,7 @@ CXX=cl.exe
 # improving the quality of crash log stack traces involving jvm.dll.
 
 # These are always used in all compiles
-CXX_FLAGS=$(EXTRA_CFLAGS) /nologo /W3 /WX
+CXX_FLAGS=$(EXTRA_CFLAGS) /nologo /W3 /WX /ZW
 
 # Let's add debug information when Full Debug Symbols is enabled
 !if "$(ENABLE_FULL_DEBUG_SYMBOLS)" == "1"
@@ -153,7 +154,7 @@ COMPILER_NAME=VS2012
 #   but if MFC_DEBUG is defined in the environment it will be used.
 MS_RUNTIME_OPTION = /MD
 !if "$(MFC_DEBUG)" == "true"
-MS_RUNTIME_OPTION = /MTd /D "_DEBUG"
+MS_RUNTIME_OPTION = /MDd /D "_DEBUG"
 !endif
 
 # VS2012 and later won't work with:
@@ -165,8 +166,8 @@ MS_RUNTIME_OPTION = $(MS_RUNTIME_OPTION) $(STATIC_CPPLIB_OPTION)
 !endif
 CXX_FLAGS=$(CXX_FLAGS) $(MS_RUNTIME_OPTION)
 
-# How /GX option is spelled
-GX_OPTION = /GX
+# How /GX option is spelled (Dirty Hack)
+GX_OPTION = /EHsc
 
 # Optimization settings for various versions of the compilers and types of
 #    builds. Three basic sets of settings: product, fastdebug, and debug.
@@ -208,7 +209,7 @@ PRODUCT_OPT_OPTION   = /O2 /Oy-
 FASTDEBUG_OPT_OPTION = /O2 /Oy-
 DEBUG_OPT_OPTION     = /Od
 GX_OPTION = /EHsc
-LD_FLAGS = /manifest $(LD_FLAGS)
+LD_FLAGS = /MANIFEST $(LD_FLAGS)
 MP_FLAG = /MP
 # Manifest Tool - used in VS2005 and later to adjust manifests stored
 # as resources inside build artifacts.
