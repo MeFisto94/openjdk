@@ -147,14 +147,16 @@ class VM_Version_StubGenerator: public StubCodeGenerator {
     __ jcc(Assembler::equal, cpu486);   // if cpuid doesn't support an input
                                         // value of at least 1, we give up and
                                         // assume a 486
-    __ lea(rsi, Address(rbp, in_bytes(VM_Version::std_cpuid0_offset())));
+
+	// here my Skylake i7-6700k crashes, so we just skip whether 0xB is supported for now...
+    /*__ lea(rsi, Address(rbp, in_bytes(VM_Version::std_cpuid0_offset())));
     __ movl(Address(rsi, 0), rax);
     __ movl(Address(rsi, 4), rbx);
     __ movl(Address(rsi, 8), rcx);
     __ movl(Address(rsi,12), rdx);
 
     __ cmpl(rax, 0xa);                  // Is cpuid(0xB) supported?
-    __ jccb(Assembler::belowEqual, std_cpuid4);
+    __ jccb(Assembler::belowEqual, std_cpuid4);*/
 
     //
     // cpuid(0xB) Processor Topology
@@ -217,11 +219,14 @@ class VM_Version_StubGenerator: public StubCodeGenerator {
     __ pop(rax);
     __ jccb(Assembler::equal, std_cpuid1);
 
+	// The following section crashed on my Skylake i7-6700k, comment it out
+	// it seems to push back the cpuid results to the structure.
     __ lea(rsi, Address(rbp, in_bytes(VM_Version::dcp_cpuid4_offset())));
     __ movl(Address(rsi, 0), rax);
     __ movl(Address(rsi, 4), rbx);
     __ movl(Address(rsi, 8), rcx);
     __ movl(Address(rsi,12), rdx);
+	
 
     //
     // Standard cpuid(0x1)
@@ -283,7 +288,7 @@ class VM_Version_StubGenerator: public StubCodeGenerator {
     __ xorl(rsi, rsi);
     VM_Version::set_cpuinfo_segv_addr( __ pc() );
     // Generate SEGV
-    __ movl(rax, Address(rsi, 0));
+    //__ movl(rax, Address(rsi, 0));
 
     VM_Version::set_cpuinfo_cont_addr( __ pc() );
     // Returns here after signal. Save xmm0 to check it later.
@@ -302,7 +307,7 @@ class VM_Version_StubGenerator: public StubCodeGenerator {
     //
     // cpuid(0x7) Structured Extended Features
     //
-    __ bind(sef_cpuid);
+    //__ bind(sef_cpuid);
     __ movl(rax, 7);
     __ cmpl(rax, Address(rbp, in_bytes(VM_Version::std_cpuid0_offset()))); // Is cpuid(0x7) supported?
     __ jccb(Assembler::greater, ext_cpuid);
@@ -414,6 +419,7 @@ void VM_Version::get_processor_features() {
 
     // Some platforms (like Win*) need a wrapper around here
     // in order to properly handle SEGV for YMM registers test.
+	// @FIXME @TODO: commented out since get_cpu_info_stub led to an access violation
     CALL_TEST_FUNC_WITH_WRAPPER_IF_NEEDED(get_cpu_info_wrapper);
 
     assert_is_initialized();

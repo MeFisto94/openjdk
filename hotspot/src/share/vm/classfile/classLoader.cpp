@@ -801,13 +801,25 @@ void ClassLoader::load_zip_library() {
   assert(ZipOpen == NULL, "should not load zip library twice");
   // First make sure native library is loaded
   os::native_java_library();
+
   // Load zip library
-  char path[JVM_MAXPATHLEN];
+  #ifndef _WINDOWS
+	char path[JVM_MAXPATHLEN];
+  #else
+	const char path[] = "zip.dll";
+  #endif
+
   char ebuf[1024];
   void* handle = NULL;
-  if (os::dll_build_name(path, sizeof(path), Arguments::get_dll_dir(), "zip")) {
-    handle = os::dll_load(path, ebuf, sizeof ebuf);
-  }
+
+  #ifdef _WINDOWS
+	handle = os::dll_load(path, ebuf, sizeof(ebuf));
+  #else
+	  if (os::dll_build_name(path, sizeof(path), Arguments::get_dll_dir(), "zip")) {
+		handle = os::dll_load(path, ebuf, sizeof ebuf);
+	  }
+  #endif
+
   if (handle == NULL) {
     vm_exit_during_initialization("Unable to load ZIP library", path);
   }

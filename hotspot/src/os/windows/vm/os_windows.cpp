@@ -22,8 +22,11 @@
  *
  */
 
-// Must be at least Windows 2000 or XP to use IsDebuggerPresent
-#define _WIN32_WINNT 0x500
+/* Must be at least Windows 2000 or XP to use IsDebuggerPresent
+/#define _WIN32_WINNT 0x500 */
+
+/* LoadPackagedLibrary (UWP) requires Win8 (see SDKDDKVer.h for Numbers)*/
+#define _WIN32_WINNT 0x0602
 
 // no precompiled headers
 #include "classfile/classLoader.hpp"
@@ -1514,10 +1517,14 @@ static int _print_module(int pid, char* fname, address base,
 // Loads .dll/.so and
 // in case of error it checks if .dll/.so was built for the
 // same architecture as Hotspot is running on
+// UWP: Dont pass a path but only the name of the lib!
 void * os::dll_load(const char *name, char *ebuf, int ebuflen)
 {
-	// @TODO: Change
-  void * result = LoadLibrary(name);
+  wchar_t *wname = new wchar_t[strlen(name) + 1];
+  mbstowcs(wname, name, strlen(name) + 1);
+  void * result = LoadPackagedLibrary(wname, 0);
+  delete[] wname;
+
   if (result != NULL) {
     return result;
   }
