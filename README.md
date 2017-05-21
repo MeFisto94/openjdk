@@ -3,12 +3,12 @@ This Fork aims to provide support for building the JVM (JRE) for use in UWP Appl
 This means you will lateron just use `jni.h`, `jvm.lib`, `jvm.dll` and `java.dll` and can
 run a JVM from code, so you can deploy regular UWP Applications launching Java Code.  
 
-Currently the build stops during the JDK compilation (awt.dll) however those files aren't
+Currently the build stops during the JDK compilation (`awt.dll`) however those files aren't
 needed in the above use-case, they are needed when you want to call awt draw functions
 directly from native code. If you can solve the build problem, PRs are welcomed, though.  
 
-When actually using the jvm.dll with the boilerplate code below (don't forget to link
-jvm.lib, add jni.h's path to the include dir and add `jvm.dll` and `java.dll` to your
+When actually using the `jvm.dll` with the boilerplate code below (don't forget to link
+`jvm.lib`, add `jni.h`'s path to the include dir and add `jvm.dll` and `java.dll` to your
 App (Project) and set `Content` to `true` in these files properties), it fails to initialize.  
 
 This is because the classloader cannot find `java/lang/Object`. I tried to specify both
