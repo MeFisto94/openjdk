@@ -37,19 +37,20 @@ When you are ready to roll you have to build libfreetype as it's explained
 [here](https://web.archive.org/web/20150403031533/https://weblogs.java.net/blog/simonis/archive/2011/10/28/yaojowbi-yet-another-openjdk-windows-build-instruction#FreeType)
 Since that site is already archived, I'll extract it's contents below (with modifications)
 
-> Download FreeType from http://www.freetype.org/download.html, extract it somewhere (ensure it's a path WITHOUT spaces!) 
+> Download FreeType from http://www.freetype.org/download.html, extract it somewhere (ensure it's a path WITHOUT spaces!)
 and doubleclick on builds\win32\vc2010\freetype.vcxproj to open the FreeType project
-and let VS2017 upgrade it. From the projects properties do the following:
-    Configuration Manager -> Active Solution Manager -> Type or select the new Platform -> x64
-    Configuration -> Release Multithreaded
-    Platform -> x64
-    Target Name -> rename to "freetype"
-    Platform Toolset -> Windows10SDK
-	CompileSwitch /MT to /MD (Found under C++ somewhere, Linking Type for the Runtime)
-Then choose "Release Multithreaded"/"x64" in the menu bar and Build the project by choosing "Build" from the project menu.
-This will create the 64-bit freetype.lib in the corresponding output directory.
-Now change the "Configuration Type" to "dll" in the project properties and build again.
-Now the 64-bit freetype.dll will be build in the output directory.  
+and let VS2017 upgrade it. From the projects properties do the following:  
+>   Configuration Manager -> Active Solution Manager -> Type or select the new Platform -> x64  
+>   Configuration -> Release Multithreaded  
+>   Platform -> x64  
+>   Target Name -> rename to "freetype"  
+>   Platform Toolset -> Windows10SDK  
+>	CompileSwitch /MT to /MD (Found under C++ somewhere, Linking Type for the Runtime)    
+
+> Then choose "Release Multithreaded"/"x64" in the menu bar and Build the project by choosing "Build" from the project menu.  
+> This will create the 64-bit freetype.lib in the corresponding output directory.
+> Now change the "Configuration Type" to "dll" in the project properties and build again.  
+> Now the 64-bit freetype.dll will be build in the output directory.    
 
 When you have that, you can start msys. You cannot start the regular msys however, you have
 to open the 64-bit Version of the Visual Studio Command Prompt First. Open your Start Menu,
