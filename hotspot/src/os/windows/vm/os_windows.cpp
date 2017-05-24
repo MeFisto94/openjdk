@@ -1514,6 +1514,24 @@ static int _print_module(int pid, char* fname, address base,
    return 0;
 }
 
+// Since UWP doesn't support loading a DLL from Path X anymore however the whole vm is designed
+// to check for the existance of a dll file etc, it might pass a path in. We just skip the path
+// and hope that the user also packaged the dll into the App, regardless of the path.
+// This method returns the name pointer only with the correct offset.
+wchar_t* extractFilename(wchar_t* name) {
+	wchar_t* c;
+	wchar_t* lastKnown = name - 1; // In case we find no \
+
+	c = wcschr(name, '\\');
+	while (c != NULL)
+	{
+		lastKnown = c;
+		c = wcschr(c + 1, '\\');
+	}
+
+	return lastKnown + 1; // Skip the last \ we found.
+}
+
 // Loads .dll/.so and
 // in case of error it checks if .dll/.so was built for the
 // same architecture as Hotspot is running on
@@ -1522,7 +1540,8 @@ void * os::dll_load(const char *name, char *ebuf, int ebuflen)
 {
   wchar_t *wname = new wchar_t[strlen(name) + 1];
   mbstowcs(wname, name, strlen(name) + 1);
-  void * result = LoadPackagedLibrary(wname, 0);
+  wchar_t *wFileName = extractFilename(wname);
+  void * result = LoadPackagedLibrary(wFileName, 0);
   delete[] wname;
 
   if (result != NULL) {
