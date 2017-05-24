@@ -36,8 +36,12 @@
 
 #include "npt_md.h"
 #include "utf.h"
+#include <Windows.h>
 
-#define NPT_ERROR(s) { (void)fprintf(stderr, "NPT ERROR: %s\n", s); exit(1); }
+#define NPT_ERROR(s) { char *c = malloc(strlen(s) + 12); \
+	snprintf(c, strlen(s) + 12, "NPT ERROR: %s\n", s); \
+	OutputDebugString(c); \
+	exit(1); }
 
 #ifdef __cplusplus
 extern "C" {

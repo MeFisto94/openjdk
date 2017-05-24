@@ -33,6 +33,7 @@
 #include <string.h>
 #include <errno.h>
 #include <io.h>
+#include <stdlib.h>
 
 #include "sys.h"
 
@@ -119,10 +120,34 @@ dbgsysBuildLibName(char *holder, int holderlen, const char *pname, const char *f
     }
 }
 
+
+// Since UWP doesn't support loading a DLL from Path X anymore however the whole vm is designed
+// to check for the existance of a dll file etc, it might pass a path in. We just skip the path
+// and hope that the user also packaged the dll into the App, regardless of the path.
+// This method returns the name pointer only with the correct offset.
+wchar_t* extractFilename(wchar_t* name) {
+	wchar_t* c;
+	wchar_t* lastKnown = name - 1; // In case we find no \
+
+	c = wcschr(name, '\\');
+	while (c != NULL)
+	{
+		lastKnown = c;
+		c = wcschr(c + 1, '\\');
+	}
+
+	return lastKnown + 1; // Skip the last \ we found.
+}
+
 void *
 dbgsysLoadLibrary(const char * name, char *err_buf, int err_buflen)
 {
-    void *result = LoadLibrary(name);
+	wchar_t *wname = malloc(sizeof(wchar_t) * strlen(name) + 1);
+	mbstowcs(wname, name, strlen(name) + 1);
+	wchar_t *wFileName = extractFilename(wname);
+	void * result = LoadPackagedLibrary(wFileName, 0);
+	free(wname);
+
     if (result == NULL) {
         /* Error message is pretty lame, try to make a better guess. */
         long errcode = GetLastError();

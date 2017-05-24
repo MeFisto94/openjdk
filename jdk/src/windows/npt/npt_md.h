@@ -41,8 +41,8 @@
         void   *_sym;                                                   \
                                                                         \
         if ( (pnpt) == NULL ) NPT_ERROR("NptEnv* is NULL");             \
-        *(pnpt) = NULL;                                                 \
-        _handle =  LoadLibrary(path);                                   \
+        *(pnpt) = NULL;     											\
+        _handle = LoadPackagedLibrary(L"npt.dll", 0);                   \
         if ( _handle == NULL ) NPT_ERROR("Cannot open library");        \
         _sym = GetProcAddress(_handle, "nptInitialize");                \
         if ( _sym == NULL ) NPT_ERROR("Cannot find nptInitialize");     \
