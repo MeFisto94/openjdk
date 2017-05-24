@@ -507,6 +507,18 @@ static jint writeInternal(FD fd, const void *buf, jint len, jboolean append)
     DWORD written = 0;
     HANDLE h = (HANDLE)fd;
     if (h != INVALID_HANDLE_VALUE) {
+
+		if (h == GetStdHandle(STD_OUTPUT_HANDLE) || h == GetStdHandle(STD_ERROR_HANDLE)) {
+			/* Setup null terminated string*/
+			//size_t sLen = strlen((const char *)buf);
+			char* cBuf = malloc(len + 1);
+			memcpy(cBuf, buf, len);
+			cBuf[len] = '\0';
+
+			OutputDebugString(cBuf);
+			return (jint)len;
+		}
+
         OVERLAPPED ov;
         LPOVERLAPPED lpOv;
         if (append == JNI_TRUE) {
