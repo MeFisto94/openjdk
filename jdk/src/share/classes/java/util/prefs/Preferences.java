@@ -291,9 +291,9 @@ public abstract class Preferences {
         // 3. Use platform-specific system-wide default
         String osName = System.getProperty("os.name");
         String platformFactory;
-        if (osName.startsWith("Windows")) {
+        /*if (osName.startsWith("Windows")) {
             platformFactory = "java.util.prefs.WindowsPreferencesFactory";
-        } else if (osName.contains("OS X")) {
+        } else */if (osName.contains("OS X")) {
             platformFactory = "java.util.prefs.MacOSXPreferencesFactory";
         } else {
             platformFactory = "java.util.prefs.FileSystemPreferencesFactory";
