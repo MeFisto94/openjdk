@@ -153,8 +153,8 @@ class FileSystemPreferences extends AbstractPreferences {
 
     static synchronized Preferences getSystemRoot() {
         if (systemRoot == null) {
-            setupSystemRoot();
-            systemRoot = new FileSystemPreferences(false);
+            //setupSystemRoot(); // WinRT allows no system wide properties
+            systemRoot = getUserRoot();
         }
         return systemRoot;
     }
