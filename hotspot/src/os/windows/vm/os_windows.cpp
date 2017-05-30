@@ -134,12 +134,17 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
   switch (reason) {
     case DLL_PROCESS_ATTACH:
       vm_lib_handle = hinst;
+	  /* Thanks to the geniouses at MS, because no-one needs precision
+	  not even on xbox. Why would someone want timers more accurate than 30 FPS?...
       if(ForceTimeHighResolution)
         timeBeginPeriod(1L);
+	  */
       break;
     case DLL_PROCESS_DETACH:
+	 /* Same here
       if(ForceTimeHighResolution)
         timeEndPeriod(1L);
+	 */
 
       break;
     default:
@@ -1681,123 +1686,9 @@ void os::print_os_info(outputStream* st) {
 }
 
 void os::win32::print_windows_version(outputStream* st) {
-  OSVERSIONINFOEX osvi;
-  VS_FIXEDFILEINFO *file_info;
-  TCHAR kernel32_path[MAX_PATH];
-  UINT len, ret;
-
-  // Use the GetVersionEx information to see if we're on a server or
-  // workstation edition of Windows. Starting with Windows 8.1 we can't
-  // trust the OS version information returned by this API.
-  ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-  if (!GetVersionEx((OSVERSIONINFO *)&osvi)) {
-    st->print_cr("Call to GetVersionEx failed");
-    return;
-  }
-  bool is_workstation = (osvi.wProductType == VER_NT_WORKSTATION);
-
-  // Get the full path to \Windows\System32\kernel32.dll and use that for
-  // determining what version of Windows we're running on.
-  len = MAX_PATH - (UINT)strlen("\\kernel32.dll") - 1;
-  ret = GetSystemDirectory(kernel32_path, len);
-  if (ret == 0 || ret > len) {
-    st->print_cr("Call to GetSystemDirectory failed");
-    return;
-  }
-  strncat(kernel32_path, "\\kernel32.dll", MAX_PATH - ret);
-
-  DWORD version_size = GetFileVersionInfoSize(kernel32_path, NULL);
-  if (version_size == 0) {
-    st->print_cr("Call to GetFileVersionInfoSize failed");
-    return;
-  }
-
-  LPTSTR version_info = (LPTSTR)os::malloc(version_size, mtInternal);
-  if (version_info == NULL) {
-    st->print_cr("Failed to allocate version_info");
-    return;
-  }
-
-  if (!GetFileVersionInfo(kernel32_path, NULL, version_size, version_info)) {
-    os::free(version_info);
-    st->print_cr("Call to GetFileVersionInfo failed");
-    return;
-  }
-
-  if (!VerQueryValue(version_info, TEXT("\\"), (LPVOID*)&file_info, &len)) {
-    os::free(version_info);
-    st->print_cr("Call to VerQueryValue failed");
-    return;
-  }
-
-  int major_version = HIWORD(file_info->dwProductVersionMS);
-  int minor_version = LOWORD(file_info->dwProductVersionMS);
-  int build_number = HIWORD(file_info->dwProductVersionLS);
-  int build_minor = LOWORD(file_info->dwProductVersionLS);
-  int os_vers = major_version * 1000 + minor_version;
-  os::free(version_info);
-
-  st->print(" Windows ");
-  switch (os_vers) {
-
-  case 6000:
-    if (is_workstation) {
-      st->print("Vista");
-    } else {
-      st->print("Server 2008");
-    }
-    break;
-
-  case 6001:
-    if (is_workstation) {
-      st->print("7");
-    } else {
-      st->print("Server 2008 R2");
-    }
-    break;
-
-  case 6002:
-    if (is_workstation) {
-      st->print("8");
-    } else {
-      st->print("Server 2012");
-    }
-    break;
-
-  case 6003:
-    if (is_workstation) {
-      st->print("8.1");
-    } else {
-      st->print("Server 2012 R2");
-    }
-    break;
-
-  case 6004:
-    if (is_workstation) {
-      st->print("10");
-    } else {
-      st->print("Server 2016");
-    }
-    break;
-
-  default:
-    // Unrecognized windows, print out its major and minor versions
-    st->print("%d.%d", major_version, minor_version);
-    break;
-  }
-
-  // Retrieve SYSTEM_INFO from GetNativeSystemInfo call so that we could
-  // find out whether we are running on 64 bit processor or not
-  SYSTEM_INFO si;
-  ZeroMemory(&si, sizeof(SYSTEM_INFO));
-  os::Kernel32Dll::GetNativeSystemInfo(&si);
-  if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
-    st->print(" , 64 bit");
-  }
-
-  st->print(" Build %d", build_number);
-  st->print(" (%d.%d.%d.%d)", major_version, minor_version, build_number, build_minor);
+  // Unfortunately UWP forbids finding the version, so we assume w10 in this build..
+  // heck we dont even know if we are on xbox
+  st->print(" Windows 10 , 64bit Build UWP (Windows Store, Xbox One, Windows Phone)");
   st->cr();
 }
 
@@ -3498,19 +3389,20 @@ class HighResolutionInterval : public CHeapObj<mtThread> {
   // to decreased efficiency related to increased timer "tick" rates.  We want to minimize
   // (a) calls to timeBeginPeriod() and timeEndPeriod() and (b) time spent with high
   // resolution timers running.
+  // Comment: Don't worry guys, MS has stopped your problems by removing timeBeginPeriod ;)
 private:
     jlong resolution;
 public:
   HighResolutionInterval(jlong ms) {
     resolution = ms % 10L;
-    if (resolution != 0) {
+    /*if (resolution != 0) {
       MMRESULT result = timeBeginPeriod(1L);
-    }
+    }*/
   }
   ~HighResolutionInterval() {
-    if (resolution != 0) {
+    /*if (resolution != 0) {
       MMRESULT result = timeEndPeriod(1L);
-    }
+    }*/
     resolution = 0L;
   }
 };
@@ -4197,7 +4089,8 @@ jlong os::thread_cpu_time(Thread* thread, bool user_sys_cpu_time) {
         return FT2INT64(UserTime) * 100;
       }
   } else {
-    return (jlong) timeGetTime() * 1000000;
+	  return (jlong)GetTickCount64() * 1000000;
+    //return (jlong) timeGetTime() * 1000000;
   }
 }
 
