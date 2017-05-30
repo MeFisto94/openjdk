@@ -2025,7 +2025,9 @@ static BOOL WINAPI consoleHandler(DWORD event) {
     case CTRL_LOGOFF_EVENT: {
       // Don't terminate JVM if it is running in a non-interactive session,
       // such as a service process.
-      USEROBJECTFLAGS flags;
+
+	  // Not supported on UWP
+      /*USEROBJECTFLAGS flags;
       HANDLE handle = GetProcessWindowStation();
       if (handle != NULL &&
           GetUserObjectInformation(handle, UOI_FLAGS, &flags,
@@ -2035,7 +2037,7 @@ static BOOL WINAPI consoleHandler(DWORD event) {
         if ((flags.dwFlags & WSF_VISIBLE) == 0) {
           return FALSE;
         }
-      }
+      }*/
     }
     case CTRL_CLOSE_EVENT:
     case CTRL_SHUTDOWN_EVENT:
@@ -3873,9 +3875,7 @@ void os::wait_for_keypress_at_exit(void) {
 
 
 int os::message_box(const char* title, const char* message) {
-  int result = MessageBox(NULL, message, title,
-                          MB_YESNO | MB_ICONERROR | MB_SYSTEMMODAL | MB_DEFAULT_DESKTOP_ONLY);
-  return result == IDYES;
+	return false; // Not Supported in UWP (well it might be, but we cannot easily call 
 }
 
 int os::allocate_thread_local_storage() {
