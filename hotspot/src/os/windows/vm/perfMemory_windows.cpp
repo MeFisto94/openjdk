@@ -274,12 +274,14 @@ static char* get_user_name() {
   char buf[UNLEN+1];
   DWORD buflen = sizeof(buf);
   if (user == NULL || strlen(user) == 0) {
-    if (GetUserName(buf, &buflen)) {
+	  // advdapi32.dll cannot be used (it provides GetUserName), but getenv will also fail.
+    /*if (GetUserName(buf, &buflen)) {
       user = buf;
     }
     else {
       return NULL;
-    }
+    }*/
+	  return NULL;
   }
 
   char* user_name = NEW_C_HEAP_ARRAY(char, strlen(user)+1, mtInternal);
@@ -1042,6 +1044,13 @@ static bool add_allow_aces(PSECURITY_DESCRIPTOR pSD,
    return true;
 }
 
+
+/**
+ * Since UWP/WinRT does not support ACLs, AVDAPI, SIDs etc, we just comment this out and try to replace it by
+ * POSIX's chmod. Or we dont care, since in UWP Folders are so isolated, that the rights don't matter really.
+ * Possibly the rights arent ever set since CreateFolder returns an error anyway
+ */
+/*
 // method to create a security attributes structure, which contains a
 // security descriptor and an access control list comprised of 0 or more
 // access control entries. The method take an array of ace_data structures
@@ -1216,20 +1225,18 @@ static LPSECURITY_ATTRIBUTES make_smo_security_attr() {
 
   return make_user_everybody_admin_security_attr(umask, emask, amask);
 }
-
+*/
 // make the user specific temporary directory
 //
 static bool make_user_tmp_dir(const char* dirname) {
 
-
-  LPSECURITY_ATTRIBUTES pDirSA = make_tmpdir_security_attr();
+  /*LPSECURITY_ATTRIBUTES pDirSA = make_tmpdir_security_attr();
   if (pDirSA == NULL) {
     return false;
-  }
-
+  }*/
 
   // create the directory with the given security attributes
-  if (!CreateDirectory(dirname, pDirSA)) {
+  if (!CreateDirectory(dirname, NULL)) {
     DWORD lasterror = GetLastError();
     if (lasterror == ERROR_ALREADY_EXISTS) {
       // The directory already exists and was probably created by another
@@ -1248,25 +1255,27 @@ static bool make_user_tmp_dir(const char* dirname) {
       // have permission for administrators to delete this directory.
       // So add full permission to the administrator. Also setting new
       // DACLs might fix the corrupted the DACLs.
-      SECURITY_INFORMATION secInfo = DACL_SECURITY_INFORMATION;
+      /*SECURITY_INFORMATION secInfo = DACL_SECURITY_INFORMATION;
       if (!SetFileSecurity(dirname, secInfo, pDirSA->lpSecurityDescriptor)) {
         if (PrintMiscellaneous && Verbose) {
           lasterror = GetLastError();
           warning("SetFileSecurity failed for %s directory.  lasterror %d \n",
                                                         dirname, lasterror);
         }
-      }
-    }
-    else {
+      }*/
+    } else {
       if (PrintMiscellaneous && Verbose) {
         warning("CreateDirectory failed: %d\n", GetLastError());
       }
       return false;
     }
+  } else {
+	  char mode[] = "0755";
+	  chmod(dirname, strtol(mode, 0, 8));
   }
 
   // free the security attributes structure
-  free_security_attr(pDirSA);
+  //free_security_attr(pDirSA);
 
   return true;
 }
@@ -1282,6 +1291,7 @@ static HANDLE create_sharedmem_resources(const char* dirname, const char* filena
   HANDLE fmh = NULL;
 
 
+  /*
   // create the security attributes for the backing store file
   LPSECURITY_ATTRIBUTES lpFileSA = make_file_security_attr();
   if (lpFileSA == NULL) {
@@ -1293,7 +1303,7 @@ static HANDLE create_sharedmem_resources(const char* dirname, const char* filena
   if (lpSmoSA == NULL) {
     free_security_attr(lpFileSA);
     return NULL;
-  }
+  }*/
 
   // create the user temporary directory
   if (!make_user_tmp_dir(dirname)) {
@@ -1318,7 +1328,7 @@ static HANDLE create_sharedmem_resources(const char* dirname, const char* filena
              FILE_SHARE_READ,            /* DWORD share mode, future READONLY
                                           * open operations allowed
                                           */
-             lpFileSA,                   /* LPSECURITY security attributes */
+             NULL,                   /* LPSECURITY security attributes */
              CREATE_ALWAYS,              /* DWORD creation disposition
                                           * create file, if it already
                                           * exists, overwrite it.
@@ -1327,7 +1337,7 @@ static HANDLE create_sharedmem_resources(const char* dirname, const char* filena
 
              NULL);                      /* HANDLE template file access */
 
-  free_security_attr(lpFileSA);
+  //free_security_attr(lpFileSA);
 
   if (fh == INVALID_HANDLE_VALUE) {
     DWORD lasterror = GetLastError();
@@ -1337,10 +1347,12 @@ static HANDLE create_sharedmem_resources(const char* dirname, const char* filena
     return NULL;
   }
 
+  char mode[] = "0600";
+  chmod(filename, strtol(mode, 0, 8));
   // try to create the file mapping
-  fmh = create_file_mapping(objectname, fh, lpSmoSA, size);
+  fmh = create_file_mapping(objectname, fh, NULL, size);
 
-  free_security_attr(lpSmoSA);
+  //free_security_attr(lpSmoSA);
 
   if (fmh == NULL) {
     // closing the file handle here will decrement the reference count
