@@ -28,6 +28,8 @@
 /* LoadPackagedLibrary (UWP) requires Win8 (see SDKDDKVer.h for Numbers)*/
 #define _WIN32_WINNT 0x0602
 
+#include <winsock2.h>
+
 // no precompiled headers
 #include "classfile/classLoader.hpp"
 #include "classfile/systemDictionary.hpp"
@@ -76,8 +78,7 @@
 #include <crtdbg.h>
 #endif
 
-
-#include <windows.h>
+//#include <windows.h> <- is pulled in by winsock2.h
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/timeb.h>
