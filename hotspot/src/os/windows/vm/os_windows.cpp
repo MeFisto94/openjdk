@@ -5342,21 +5342,24 @@ inline BOOL os::WinSock2Dll::WinSock2Available() {
 inline BOOL os::Advapi32Dll::AdjustTokenPrivileges(HANDLE TokenHandle,
    BOOL DisableAllPrivileges, PTOKEN_PRIVILEGES NewState, DWORD BufferLength,
    PTOKEN_PRIVILEGES PreviousState, PDWORD ReturnLength) {
-     return ::AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState,
-       BufferLength, PreviousState, ReturnLength);
+     /*return ::AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState,
+       BufferLength, PreviousState, ReturnLength);*/
+	return false;
 }
 
 inline BOOL os::Advapi32Dll::OpenProcessToken(HANDLE ProcessHandle, DWORD DesiredAccess,
   PHANDLE TokenHandle) {
-    return ::OpenProcessToken(ProcessHandle, DesiredAccess, TokenHandle);
+    //return ::OpenProcessToken(ProcessHandle, DesiredAccess, TokenHandle);
+	return false;
 }
 
 inline BOOL os::Advapi32Dll::LookupPrivilegeValue(LPCTSTR lpSystemName, LPCTSTR lpName, PLUID lpLuid) {
-  return ::LookupPrivilegeValue(lpSystemName, lpName, lpLuid);
+  //return ::LookupPrivilegeValue(lpSystemName, lpName, lpLuid);
+	return false;
 }
 
 inline BOOL os::Advapi32Dll::AdvapiAvailable() {
-  return true;
+  return false; // WinRT/UWP does not support Advapi (especially those Permission things)
 }
 
 void* os::get_default_process_handle() {
