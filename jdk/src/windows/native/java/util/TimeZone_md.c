@@ -29,6 +29,7 @@
 #include "jvm.h"
 #include "TimeZone_md.h"
 #include "jdk_util.h"
+#include <VersionHelpers.h>
 
 #define VALUE_UNKNOWN           0
 #define VALUE_KEY               1
@@ -37,10 +38,6 @@
 
 #define MAX_ZONE_CHAR           256
 #define MAX_MAPID_LENGTH        32
-
-#define NT_TZ_KEY               "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"
-#define WIN_TZ_KEY              "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones"
-#define WIN_CURRENT_TZ_KEY      "System\\CurrentControlSet\\Control\\TimeZoneInformation"
 
 typedef struct _TziValue {
     LONG        bias;
@@ -64,74 +61,6 @@ typedef struct _TIME_DYNAMIC_ZONE_INFORMATION {
 } DYNAMIC_TIME_ZONE_INFORMATION, *PDYNAMIC_TIME_ZONE_INFORMATION;
 #endif
 
-/*
- * Registry key names
- */
-static void *keyNames[] = {
-    (void *) L"StandardName",
-    (void *) "StandardName",
-    (void *) L"Std",
-    (void *) "Std"
-};
-
-/*
- * Indices to keyNames[]
- */
-#define STANDARD_NAME           0
-#define STD_NAME                2
-
-/*
- * Calls RegQueryValueEx() to get the value for the specified key. If
- * the platform is NT, 2000 or XP, it calls the Unicode
- * version. Otherwise, it calls the ANSI version and converts the
- * value to Unicode. In this case, it assumes that the current ANSI
- * Code Page is the same as the native platform code page (e.g., Code
- * Page 932 for the Japanese Windows systems.
- *
- * `keyIndex' is an index value to the keyNames in Unicode
- * (WCHAR). `keyIndex' + 1 points to its ANSI value.
- *
- * Returns the status value. ERROR_SUCCESS if succeeded, a
- * non-ERROR_SUCCESS value otherwise.
- */
-static LONG
-getValueInRegistry(HKEY hKey,
-                   int keyIndex,
-                   LPDWORD typePtr,
-                   LPBYTE buf,
-                   LPDWORD bufLengthPtr)
-{
-    LONG ret;
-    DWORD bufLength = *bufLengthPtr;
-    char val[MAX_ZONE_CHAR];
-    DWORD valSize;
-    int len;
-
-    *typePtr = 0;
-    ret = RegQueryValueExW(hKey, (WCHAR *) keyNames[keyIndex], NULL,
-                           typePtr, buf, bufLengthPtr);
-    if (ret == ERROR_SUCCESS && *typePtr == REG_SZ) {
-        return ret;
-    }
-
-    valSize = sizeof(val);
-    ret = RegQueryValueExA(hKey, (char *) keyNames[keyIndex + 1], NULL,
-                           typePtr, val, &valSize);
-    if (ret != ERROR_SUCCESS) {
-        return ret;
-    }
-    if (*typePtr != REG_SZ) {
-        return ERROR_BADKEY;
-    }
-
-    len = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS,
-                              (LPCSTR) val, -1,
-                              (LPWSTR) buf, bufLength/sizeof(WCHAR));
-    if (len <= 0) {
-        return ERROR_BADKEY;
-    }
-    return ERROR_SUCCESS;
-}
 
 /*
  * Produces custom name "GMT+hh:mm" from the given bias in buffer.
@@ -190,32 +119,12 @@ static int getDynamicTimeZoneInfo(PDYNAMIC_TIME_ZONE_INFORMATION pdtzi) {
 static int getWinTimeZone(char *winZoneName, char *winMapID)
 {
     TIME_ZONE_INFORMATION tzi;
-    OSVERSIONINFO ver;
-    int onlyMapID;
     HANDLE hKey = NULL, hSubKey = NULL;
-    LONG ret;
-    DWORD nSubKeys, i;
-    ULONG valueType;
-    TCHAR subKeyName[MAX_ZONE_CHAR];
-    TCHAR szValue[MAX_ZONE_CHAR];
-    WCHAR stdNameInReg[MAX_ZONE_CHAR];
-    TziValue tempTzi;
     WCHAR *stdNamePtr = tzi.StandardName;
-    DWORD valueSize;
-    DWORD timeType;
-    int isVistaOrLater;
+	DWORD timeType;
 
-    /*
-     * Determine if this is a Vista or later.
-     */
-    ver.dwOSVersionInfoSize = sizeof(ver);
-    GetVersionEx(&ver);
-    isVistaOrLater = (ver.dwMajorVersion >= 6);
-
-    if (isVistaOrLater) {
+    if (IsWindowsVistaOrGreater()) {
         DYNAMIC_TIME_ZONE_INFORMATION dtzi;
-        DWORD bufSize;
-        DWORD val;
 
         /*
          * Get the dynamic time zone information, if available, so that time
@@ -223,7 +132,7 @@ static int getWinTimeZone(char *winZoneName, char *winMapID)
          */
         timeType = getDynamicTimeZoneInfo(&dtzi);
         if (timeType == TIME_ZONE_ID_INVALID) {
-            goto err;
+			return VALUE_UNKNOWN;
         }
 
         if (timeType != NO_DYNAMIC_TIME_ZONE_INFO) {
@@ -240,48 +149,9 @@ static int getWinTimeZone(char *winZoneName, char *winMapID)
                 }
                 wcstombs(winZoneName, dtzi.TimeZoneKeyName, MAX_ZONE_CHAR);
                 return VALUE_KEY;
-            }
-
-            /*
-             * If TimeZoneKeyName is not available, check whether StandardName
-             * is available to fall back to the older API GetTimeZoneInformation.
-             * If not, directly read the value from registry keys.
-             */
-            if (dtzi.StandardName[0] == 0) {
-                ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, WIN_CURRENT_TZ_KEY, 0,
-                                   KEY_READ, (PHKEY)&hKey);
-                if (ret != ERROR_SUCCESS) {
-                    goto err;
-                }
-
-                /*
-                 * Determine if auto-daylight time adjustment is turned off.
-                 */
-                bufSize = sizeof(val);
-                ret = RegQueryValueExA(hKey, "DynamicDaylightTimeDisabled", NULL,
-                                       &valueType, (LPBYTE) &val, &bufSize);
-                if (ret != ERROR_SUCCESS) {
-                    goto err;
-                }
-                /*
-                 * Return a custom time zone name if auto-daylight time
-                 * adjustment is disabled.
-                 */
-                if (val == 1) {
-                    customZoneName(dtzi.Bias, winZoneName);
-                    (void) RegCloseKey(hKey);
-                    return VALUE_GMTOFFSET;
-                }
-
-                bufSize = MAX_ZONE_CHAR;
-                ret = RegQueryValueExA(hKey, "TimeZoneKeyName",NULL,
-                                       &valueType, (LPBYTE)winZoneName, &bufSize);
-                if (ret != ERROR_SUCCESS) {
-                    goto err;
-                }
-                (void) RegCloseKey(hKey);
-                return VALUE_KEY;
-            }
+			} else {
+				return VALUE_UNKNOWN;
+			}
         }
     }
 
@@ -290,185 +160,10 @@ static int getWinTimeZone(char *winZoneName, char *winMapID)
      */
     timeType = GetTimeZoneInformation(&tzi);
     if (timeType == TIME_ZONE_ID_INVALID) {
-        goto err;
-    }
-
-    ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, WIN_CURRENT_TZ_KEY, 0,
-                       KEY_READ, (PHKEY)&hKey);
-    if (ret == ERROR_SUCCESS) {
-        DWORD val;
-        DWORD bufSize;
-
-        /*
-         * Determine if auto-daylight time adjustment is turned off.
-         */
-        bufSize = sizeof(val);
-        ret = RegQueryValueExA(hKey, "DynamicDaylightTimeDisabled", NULL,
-                               &valueType, (LPBYTE) &val, &bufSize);
-        if (ret != ERROR_SUCCESS) {
-            /*
-             * Try the old key name.
-             */
-            bufSize = sizeof(val);
-            ret = RegQueryValueExA(hKey, "DisableAutoDaylightTimeSet", NULL,
-                                   &valueType, (LPBYTE) &val, &bufSize);
-        }
-
-        if (ret == ERROR_SUCCESS) {
-            int daylightSavingsUpdateDisabledOther = (val == 1 && tzi.DaylightDate.wMonth != 0);
-            int daylightSavingsUpdateDisabledVista = (val == 1);
-            int daylightSavingsUpdateDisabled
-                = (isVistaOrLater ? daylightSavingsUpdateDisabledVista : daylightSavingsUpdateDisabledOther);
-
-            if (daylightSavingsUpdateDisabled) {
-                (void) RegCloseKey(hKey);
-                customZoneName(tzi.Bias, winZoneName);
-                return VALUE_GMTOFFSET;
-            }
-        }
-
-        /*
-         * Win32 problem: If the length of the standard time name is equal
-         * to (or probably longer than) 32 in the registry,
-         * GetTimeZoneInformation() on NT returns a null string as its
-         * standard time name. We need to work around this problem by
-         * getting the same information from the TimeZoneInformation
-         * registry.
-         */
-        if (tzi.StandardName[0] == 0) {
-            bufSize = sizeof(stdNameInReg);
-            ret = getValueInRegistry(hKey, STANDARD_NAME, &valueType,
-                                     (LPBYTE) stdNameInReg, &bufSize);
-            if (ret != ERROR_SUCCESS) {
-                goto err;
-            }
-            stdNamePtr = stdNameInReg;
-        }
-        (void) RegCloseKey(hKey);
-    }
-
-    /*
-     * Open the "Time Zones" registry.
-     */
-    ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NT_TZ_KEY, 0, KEY_READ, (PHKEY)&hKey);
-    if (ret != ERROR_SUCCESS) {
-        ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, WIN_TZ_KEY, 0, KEY_READ, (PHKEY)&hKey);
-        /*
-         * If both failed, then give up.
-         */
-        if (ret != ERROR_SUCCESS) {
-            return VALUE_UNKNOWN;
-        }
-    }
-
-    /*
-     * Get the number of subkeys of the "Time Zones" registry for
-     * enumeration.
-     */
-    ret = RegQueryInfoKey(hKey, NULL, NULL, NULL, &nSubKeys,
-                          NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-    if (ret != ERROR_SUCCESS) {
-        goto err;
-    }
-
-    /*
-     * Compare to the "Std" value of each subkey and find the entry that
-     * matches the current control panel setting.
-     */
-    onlyMapID = 0;
-    for (i = 0; i < nSubKeys; ++i) {
-        DWORD size = sizeof(subKeyName);
-        ret = RegEnumKeyEx(hKey, i, subKeyName, &size, NULL, NULL, NULL, NULL);
-        if (ret != ERROR_SUCCESS) {
-            goto err;
-        }
-        ret = RegOpenKeyEx(hKey, subKeyName, 0, KEY_READ, (PHKEY)&hSubKey);
-        if (ret != ERROR_SUCCESS) {
-            goto err;
-        }
-
-        size = sizeof(szValue);
-        ret = getValueInRegistry(hSubKey, STD_NAME, &valueType,
-                                 szValue, &size);
-        if (ret != ERROR_SUCCESS) {
-            /*
-             * NT 4.0 SP3 fails here since it doesn't have the "Std"
-             * entry in the Time Zones registry.
-             */
-            RegCloseKey(hSubKey);
-            onlyMapID = 1;
-            ret = RegOpenKeyExW(hKey, stdNamePtr, 0, KEY_READ, (PHKEY)&hSubKey);
-            if (ret != ERROR_SUCCESS) {
-                goto err;
-            }
-            break;
-        }
-
-        if (wcscmp((WCHAR *)szValue, stdNamePtr) == 0) {
-            /*
-             * Some localized Win32 platforms use a same name to
-             * different time zones. So, we can't rely only on the name
-             * here. We need to check GMT offsets and transition dates
-             * to make sure it's the registry of the current time
-             * zone.
-             */
-            DWORD tziValueSize = sizeof(tempTzi);
-            ret = RegQueryValueEx(hSubKey, "TZI", NULL, &valueType,
-                                  (unsigned char *) &tempTzi, &tziValueSize);
-            if (ret == ERROR_SUCCESS) {
-                if ((tzi.Bias != tempTzi.bias) ||
-                    (memcmp((const void *) &tzi.StandardDate,
-                            (const void *) &tempTzi.stdDate,
-                            sizeof(SYSTEMTIME)) != 0)) {
-                        goto out;
-                }
-
-                if (tzi.DaylightBias != 0) {
-                    if ((tzi.DaylightBias != tempTzi.dstBias) ||
-                        (memcmp((const void *) &tzi.DaylightDate,
-                                (const void *) &tempTzi.dstDate,
-                                sizeof(SYSTEMTIME)) != 0)) {
-                        goto out;
-                    }
-                }
-            }
-
-            /*
-             * found matched record, terminate search
-             */
-            strcpy(winZoneName, subKeyName);
-            break;
-        }
-    out:
-        (void) RegCloseKey(hSubKey);
-    }
-
-    /*
-     * Get the "MapID" value of the registry to be able to eliminate
-     * duplicated key names later.
-     */
-    valueSize = MAX_MAPID_LENGTH;
-    ret = RegQueryValueExA(hSubKey, "MapID", NULL, &valueType, winMapID, &valueSize);
-    (void) RegCloseKey(hSubKey);
-    (void) RegCloseKey(hKey);
-
-    if (ret != ERROR_SUCCESS) {
-        /*
-         * Vista doesn't have mapID. VALUE_UNKNOWN should be returned
-         * only for Windows NT.
-         */
-        if (onlyMapID == 1) {
-            return VALUE_UNKNOWN;
-        }
-    }
-
-    return VALUE_KEY;
-
- err:
-    if (hKey != NULL) {
-        (void) RegCloseKey(hKey);
-    }
-    return VALUE_UNKNOWN;
+		return VALUE_UNKNOWN;
+	} else {
+		return VALUE_KEY;
+	}
 }
 
 /*
@@ -624,32 +319,16 @@ char *
 getGMTOffsetID()
 {
     LONG bias = 0;
-    LONG ret;
     HANDLE hKey = NULL;
     char zonename[32];
 
     // Obtain the current GMT offset value of ActiveTimeBias.
-    ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, WIN_CURRENT_TZ_KEY, 0,
-                       KEY_READ, (PHKEY)&hKey);
-    if (ret == ERROR_SUCCESS) {
-        DWORD val;
-        DWORD bufSize = sizeof(val);
-        ULONG valueType = 0;
-        ret = RegQueryValueExA(hKey, "ActiveTimeBias",
-                               NULL, &valueType, (LPBYTE) &val, &bufSize);
-        if (ret == ERROR_SUCCESS) {
-            bias = (LONG) val;
-        }
-        (void) RegCloseKey(hKey);
-    }
-
     // If we can't get the ActiveTimeBias value, use Bias of TimeZoneInformation.
     // Note: Bias doesn't reflect current daylight saving.
-    if (ret != ERROR_SUCCESS) {
-        TIME_ZONE_INFORMATION tzi;
-        if (GetTimeZoneInformation(&tzi) != TIME_ZONE_ID_INVALID) {
-            bias = tzi.Bias;
-        }
+	// (On UWP, we couldn't get ActiveTimeBias Value)
+    TIME_ZONE_INFORMATION tzi;
+    if (GetTimeZoneInformation(&tzi) != TIME_ZONE_ID_INVALID) {
+        bias = tzi.Bias;
     }
 
     customZoneName(bias, zonename);

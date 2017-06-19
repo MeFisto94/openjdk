@@ -25,14 +25,13 @@
 
 /* Access APIs for Windows Vista and above */
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0601
+#define _WIN32_WINNT 0x0602
 #endif
 
 #include "jni.h"
 #include "jni_util.h"
 
 #include <windows.h>
-#include <shlobj.h>
 #include <objidl.h>
 #include <locale.h>
 #include <sys/types.h>
@@ -41,6 +40,7 @@
 
 #include <stdlib.h>
 #include <Wincon.h>
+#include <wchar.h>
 
 #include "locale_str.h"
 #include "java_props.h"
@@ -54,50 +54,55 @@
 #endif
 
 typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO);
-static boolean SetupI18nProps(LCID lcid, char** language, char** script, char** country,
+static boolean SetupI18nProps(wchar_t *languageName, char** language, char** script, char** country,
                char** variant, char** encoding);
 
 #define PROPSIZE 9      // eight-letter + null terminator
 #define SNAMESIZE 86    // max number of chars for LOCALE_SNAME is 85
 
-static char *
-getEncodingInternal(LCID lcid)
+static char *getEncodingInternal(LPCWSTR strNameBuffer)
 {
     int codepage;
-    char * ret = malloc(16);
+    WCHAR * ret = malloc(32);
     if (ret == NULL) {
         return NULL;
     }
 
-    if (GetLocaleInfo(lcid,
+	/*WCHAR strNameBuffer[LOCALE_NAME_MAX_LENGTH];
+	if (LCIDToLocaleName(lcid, strNameBuffer, LOCALE_NAME_MAX_LENGTH, 0) == 0) {
+		return ret;
+	}*/
+
+    if (GetLocaleInfoEx(strNameBuffer, 
                       LOCALE_IDEFAULTANSICODEPAGE,
-                      ret+2, 14) == 0) {
+                      ret+2,
+					  14) == 0) {
         codepage = 1252;
     } else {
-        codepage = atoi(ret+2);
+        codepage = _wtoi(ret+2);
     }
 
     switch (codepage) {
     case 0:
-        strcpy(ret, "UTF-8");
+        wcscpy(ret, L"UTF-8");
         break;
     case 874:     /*  9:Thai     */
     case 932:     /* 10:Japanese */
     case 949:     /* 12:Korean Extended Wansung */
     case 950:     /* 13:Chinese (Taiwan, Hongkong, Macau) */
     case 1361:    /* 15:Korean Johab */
-        ret[0] = 'M';
-        ret[1] = 'S';
+        ret[0] = L'M';
+        ret[1] = L'S';
         break;
     case 936:
-        strcpy(ret, "GBK");
+        wcscpy(ret, L"GBK");
         break;
     case 54936:
-        strcpy(ret, "GB18030");
+        wcscpy(ret, L"GB18030");
         break;
     default:
-        ret[0] = 'C';
-        ret[1] = 'p';
+        ret[0] = L'C';
+        ret[1] = L'p';
         break;
     }
 
@@ -105,34 +110,26 @@ getEncodingInternal(LCID lcid)
     //default encoding, if HKSCS patch has been installed.
     // "old" MS950 0xfa41 -> u+e001
     // "new" MS950 0xfa41 -> u+92db
-    if (strcmp(ret, "MS950") == 0) {
+    if (wcscmp(ret, L"MS950") == 0) {
         TCHAR  mbChar[2] = {(char)0xfa, (char)0x41};
         WCHAR  unicodeChar;
         MultiByteToWideChar(CP_ACP, 0, mbChar, 2, &unicodeChar, 1);
         if (unicodeChar == 0x92db) {
-            strcpy(ret, "MS950_HKSCS_XP");
+            wcscpy(ret, L"MS950_HKSCS_XP");
         }
     } else {
         //SimpChinese Windows should use GB18030 as the default
         //encoding, if gb18030 patch has been installed (on windows
         //2000/XP, (1)Codepage 54936 will be available
         //(2)simsun18030.ttc will exist under system fonts dir )
-        if (strcmp(ret, "GBK") == 0 && IsValidCodePage(54936)) {
-            char systemPath[MAX_PATH + 1];
-            char* gb18030Font = "\\FONTS\\SimSun18030.ttc";
-            FILE *f = NULL;
-            if (GetWindowsDirectory(systemPath, MAX_PATH + 1) != 0 &&
-                strlen(systemPath) + strlen(gb18030Font) < MAX_PATH + 1) {
-                strcat(systemPath, "\\FONTS\\SimSun18030.ttc");
-                if ((f = fopen(systemPath, "r")) != NULL) {
-                    fclose(f);
-                    strcpy(ret, "GB18030");
-                }
-            }
-        }
+		// Due to UWP Limitations, we assume the patch is installed...
+        wcscpy(ret, L"GB18030");
     }
 
-    return ret;
+	char *res = (char *)malloc(wcslen(ret) + 1);
+	wcstombs(res, ret, wcslen(ret) + 1);
+	free(ret);
+	return res;
 }
 
 static char* getConsoleEncoding()
@@ -154,7 +151,14 @@ static char* getConsoleEncoding()
 DllExport const char *
 getEncodingFromLangID(LANGID langID)
 {
-    return getEncodingInternal(MAKELCID(langID, SORT_DEFAULT));
+	WCHAR strNameBuffer[LOCALE_NAME_MAX_LENGTH];
+	if (LCIDToLocaleName(MAKELCID(langID, SORT_DEFAULT), strNameBuffer, LOCALE_NAME_MAX_LENGTH, 0) == 0) {
+		char *p =  (char*)malloc(1);
+		p[0] = '\0';
+		return (const char*)p;
+	}
+
+    return getEncodingInternal(strNameBuffer);
 }
 
 // Returns BCP47 Language Tag
@@ -170,7 +174,14 @@ getJavaIDFromLangID(LANGID langID)
         return NULL;
     }
 
-    if (SetupI18nProps(MAKELCID(langID, SORT_DEFAULT),
+	WCHAR strNameBuffer[LOCALE_NAME_MAX_LENGTH];
+	if (LCIDToLocaleName(MAKELCID(langID, SORT_DEFAULT), strNameBuffer, LOCALE_NAME_MAX_LENGTH, 0) == 0) {
+		char *p = (char*)malloc(1);
+		p[0] = '\0';
+		return (const char*)p;
+	}
+
+    if (SetupI18nProps(strNameBuffer,
                    &(elems[0]), &(elems[1]), &(elems[2]), &(elems[3]), &(elems[4]))) {
 
     // there always is the "language" tag
@@ -197,52 +208,12 @@ getJavaIDFromLangID(LANGID langID)
 
 /*
  * Code to figure out the user's home directory using shell32.dll
+ * Impossible on UWP, sorry...
  */
 WCHAR*
 getHomeFromShell32()
 {
-    /*
-     * Note that we don't free the memory allocated
-     * by getHomeFromShell32.
-     */
-    static WCHAR *u_path = NULL;
-    if (u_path == NULL) {
-        HRESULT hr;
-
-        /*
-         * SHELL32 DLL is delay load DLL and we can use the trick with
-         * __try/__except block.
-         */
-        __try {
-            /*
-             * For Windows Vista and later (or patched MS OS) we need to use
-             * [SHGetKnownFolderPath] call to avoid MAX_PATH length limitation.
-             * Shell32.dll (version 6.0.6000 or later)
-             */
-            hr = SHGetKnownFolderPath(&FOLDERID_Profile, KF_FLAG_DONT_VERIFY, NULL, &u_path);
-        } __except(EXCEPTION_EXECUTE_HANDLER) {
-            /* Exception: no [SHGetKnownFolderPath] entry */
-            hr = E_FAIL;
-        }
-
-        if (FAILED(hr)) {
-            WCHAR path[MAX_PATH+1];
-
-            /* fallback solution for WinXP and Windows 2000 */
-            hr = SHGetFolderPathW(NULL, CSIDL_FLAG_DONT_VERIFY | CSIDL_PROFILE, NULL, SHGFP_TYPE_CURRENT, path);
-            if (FAILED(hr)) {
-                /* we can't find the shell folder. */
-                u_path = NULL;
-            } else {
-                /* Just to be sure about the path length until Windows Vista approach.
-                 * [S_FALSE] could not be returned due to [CSIDL_FLAG_DONT_VERIFY] flag and UNICODE version.
-                 */
-                path[MAX_PATH] = 0;
-                u_path = _wcsdup(path);
-            }
-        }
-    }
-    return u_path;
+    return NULL;
 }
 
 static boolean
@@ -279,42 +250,50 @@ cpu_isalist(void)
 }
 
 static boolean
-SetupI18nProps(LCID lcid, char** language, char** script, char** country,
+SetupI18nProps(wchar_t *languageName, char** language, char** script, char** country,
                char** variant, char** encoding) {
     /* script */
-    char tmp[SNAMESIZE];
+    wchar_t tmp[SNAMESIZE];
+	char tmpC[SNAMESIZE];
     *script = malloc(PROPSIZE);
     if (*script == NULL) {
         return FALSE;
     }
-    if (GetLocaleInfo(lcid,
-                      LOCALE_SNAME, tmp, SNAMESIZE) == 0 ||
-        sscanf(tmp, "%*[a-z\\-]%1[A-Z]%[a-z]", *script, &((*script)[1])) == 0 ||
+	if (GetLocaleInfoEx(languageName,
+		LOCALE_SNAME, tmp, SNAMESIZE) == 0 ||
+		wcstombs(tmpC, tmp, wcslen(tmp) + 1) == -2 || // prevent treating it as an if.
+        sscanf(tmpC, "%*[a-z\\-]%1[A-Z]%[a-z]", *script, &((*script)[1])) == 0 ||
         strlen(*script) != 4) {
         (*script)[0] = '\0';
     }
 
     /* country */
     *country = malloc(PROPSIZE);
+	wchar_t wcountry[PROPSIZE];
+
     if (*country == NULL) {
         return FALSE;
     }
-    if (GetLocaleInfo(lcid,
-                      LOCALE_SISO3166CTRYNAME, *country, PROPSIZE) == 0 &&
-        GetLocaleInfo(lcid,
-                      LOCALE_SISO3166CTRYNAME2, *country, PROPSIZE) == 0) {
+    if (GetLocaleInfoEx(languageName,
+                      LOCALE_SISO3166CTRYNAME, wcountry, PROPSIZE) == 0 &&
+        GetLocaleInfoEx(languageName,
+                      LOCALE_SISO3166CTRYNAME2, wcountry, PROPSIZE) == 0 &&
+		wcstombs(*country, wcountry, PROPSIZE) != -2) {
         (*country)[0] = '\0';
     }
 
     /* language */
     *language = malloc(PROPSIZE);
+	// since it also shared PROPSIZE, we use wcountry again
+	memset(wcountry, 0, PROPSIZE);
     if (*language == NULL) {
         return FALSE;
     }
-    if (GetLocaleInfo(lcid,
-                      LOCALE_SISO639LANGNAME, *language, PROPSIZE) == 0 &&
-        GetLocaleInfo(lcid,
-                      LOCALE_SISO639LANGNAME2, *language, PROPSIZE) == 0) {
+    if (GetLocaleInfoEx(languageName,
+                      LOCALE_SISO639LANGNAME, wcountry, PROPSIZE) == 0 &&
+        GetLocaleInfoEx(languageName,
+                      LOCALE_SISO639LANGNAME2, wcountry, PROPSIZE) == 0 &&
+		wcstombs(*language, wcountry, PROPSIZE) != -2) {
             /* defaults to en_US */
             strcpy(*language, "en");
             strcpy(*country, "US");
@@ -338,7 +317,7 @@ SetupI18nProps(LCID lcid, char** language, char** script, char** country,
     }
 
     /* encoding */
-    *encoding = getEncodingInternal(lcid);
+    *encoding = getEncodingInternal(languageName);
     if (*encoding == NULL) {
         return FALSE;
     }
@@ -593,6 +572,7 @@ GetJavaProperties(JNIEnv* env)
         if (uname != NULL && wcslen(uname) > 0) {
             sprops.user_name = _wcsdup(uname);
         } else {
+			/*
             DWORD buflen = 0;
             if (GetUserNameW(NULL, &buflen) == 0 &&
                 GetLastError() == ERROR_INSUFFICIENT_BUFFER)
@@ -606,6 +586,8 @@ GetJavaProperties(JNIEnv* env)
                 uname = NULL;
             }
             sprops.user_name = (uname != NULL) ? uname : L"unknown";
+			*/
+			sprops.user_name = L"unknown";
         }
     }
 
@@ -632,51 +614,37 @@ GetJavaProperties(JNIEnv* env)
      *  file.encoding.pkg
      */
     {
-        /*
-         * query the system for the current system default locale
-         * (which is a Windows LCID value),
-         */
-        LCID userDefaultLCID = GetUserDefaultLCID();
-        LCID systemDefaultLCID = GetSystemDefaultLCID();
-        LCID userDefaultUILang = GetUserDefaultUILanguage();
-
         {
             char * display_encoding;
             HANDLE hStdOutErr;
+			
+			//#define LOCALE_NAME_MAX_LENGTH 85
+			wchar_t *sysln = malloc(LOCALE_NAME_MAX_LENGTH);
+			wchar_t *usln = malloc(LOCALE_NAME_MAX_LENGTH);
+			GetSystemDefaultLocaleName(sysln, LOCALE_NAME_MAX_LENGTH);
+			GetUserDefaultLocaleName(usln, LOCALE_NAME_MAX_LENGTH);
 
-            // Windows UI Language selection list only cares "language"
-            // information of the UI Language. For example, the list
-            // just lists "English" but it actually means "en_US", and
-            // the user cannot select "en_GB" (if exists) in the list.
-            // So, this hack is to use the user LCID region information
-            // for the UI Language, if the "language" portion of those
-            // two locales are the same.
-            if (PRIMARYLANGID(LANGIDFROMLCID(userDefaultLCID)) ==
-                PRIMARYLANGID(LANGIDFROMLCID(userDefaultUILang))) {
-                userDefaultUILang = userDefaultLCID;
-            }
-
-            SetupI18nProps(userDefaultUILang,
+            SetupI18nProps(sysln, /*getUserDefaultLocaleName?*/
                            &sprops.language,
                            &sprops.script,
                            &sprops.country,
                            &sprops.variant,
                            &display_encoding);
-            SetupI18nProps(userDefaultLCID,
+            SetupI18nProps(usln,
                            &sprops.format_language,
                            &sprops.format_script,
                            &sprops.format_country,
                            &sprops.format_variant,
                            &sprops.encoding);
-            SetupI18nProps(userDefaultUILang,
+            SetupI18nProps(usln,
                            &sprops.display_language,
                            &sprops.display_script,
                            &sprops.display_country,
                            &sprops.display_variant,
                            &display_encoding);
 
-            sprops.sun_jnu_encoding = getEncodingInternal(systemDefaultLCID);
-            if (LANGIDFROMLCID(userDefaultLCID) == 0x0c04 && majorVersion == 6) {
+            sprops.sun_jnu_encoding = getEncodingInternal(sysln);
+            /*if (LANGIDFROMLCID(userDefaultLCID) == 0x0c04 && majorVersion == 6) {
                 // MS claims "Vista has built-in support for HKSCS-2004.
                 // All of the HKSCS-2004 characters have Unicode 4.1.
                 // PUA code point assignments". But what it really means
@@ -686,7 +654,7 @@ GetJavaProperties(JNIEnv* env)
                 // all. Set encoding to MS950_HKSCS.
                 sprops.encoding = "MS950_HKSCS";
                 sprops.sun_jnu_encoding = "MS950_HKSCS";
-            }
+            }*/
 
             hStdOutErr = GetStdHandle(STD_OUTPUT_HANDLE);
             if (hStdOutErr != INVALID_HANDLE_VALUE &&
@@ -720,7 +688,7 @@ GetJavaProperties(JNIEnv* env)
     /* Current directory */
     {
         WCHAR buf[MAX_PATH];
-        if (GetCurrentDirectoryW(sizeof(buf)/sizeof(WCHAR), buf) != 0)
+        if (GetCurrentDirectory(sizeof(buf)/sizeof(WCHAR), buf) != 0)
             sprops.user_dir = _wcsdup(buf);
     }
 

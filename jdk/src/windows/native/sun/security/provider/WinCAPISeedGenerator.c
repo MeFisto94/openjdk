@@ -29,9 +29,13 @@
 #endif
 
 #include <windows.h>
-#include <wincrypt.h>
+#include <bcrypt.h>
 #include <jni.h>
 #include "sun_security_provider_NativeSeedGenerator.h"
+
+#ifndef STATUS_SUCCESS
+	#define STATUS_SUCCESS 0x0
+#endif
 
 /*
  * Get a random seed from the MS CryptoAPI. Return true if successful, false
@@ -40,22 +44,19 @@
  * Some early versions of Windows 95 do not support the required functions.
  * Use runtime linking to avoid problems.
  *
+ * UWP doesn't support CryptGenRandom anymore but we use BCrypt (since Vista) in Favor of that.
  */
 JNIEXPORT jboolean JNICALL Java_sun_security_provider_NativeSeedGenerator_nativeGenerateSeed
   (JNIEnv *env, jclass clazz, jbyteArray randArray)
 {
-    HCRYPTPROV hCryptProv;
+	BCRYPT_ALG_HANDLE hAlg;
     jboolean result = JNI_FALSE;
     jsize numBytes;
     jbyte* randBytes;
 
-    if (CryptAcquireContextA(&hCryptProv, "J2SE", NULL, PROV_RSA_FULL, 0) == FALSE) {
-        /* If CSP context hasn't been created, create one. */
-        if (CryptAcquireContextA(&hCryptProv, "J2SE", NULL, PROV_RSA_FULL,
-                CRYPT_NEWKEYSET) == FALSE) {
-            return result;
-        }
-    }
+	if (BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_RSA_ALGORITHM, NULL, 0) != STATUS_SUCCESS) {
+		return JNI_FALSE;
+	}
 
     numBytes = (*env)->GetArrayLength(env, randArray);
     randBytes = (*env)->GetByteArrayElements(env, randArray, NULL);
@@ -63,13 +64,15 @@ JNIEXPORT jboolean JNICALL Java_sun_security_provider_NativeSeedGenerator_native
         goto cleanup;
     }
 
-    if (CryptGenRandom(hCryptProv, numBytes, randBytes)) {
-        result = JNI_TRUE;
-    }
+	// Unfortunately the Entropy in randBytes is not used in W8+ (so UWP)
+	if (BCryptGenRandom(hAlg, randBytes, numBytes, BCRYPT_RNG_USE_ENTROPY_IN_BUFFER)) {
+		result = JNI_TRUE;
+	}
+
     (*env)->ReleaseByteArrayElements(env, randArray, randBytes, 0);
 
 cleanup:
-    CryptReleaseContext(hCryptProv, 0);
+	BCryptCloseAlgorithmProvider(hAlg, 0);
 
     return result;
 }
