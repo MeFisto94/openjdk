@@ -444,7 +444,7 @@ ifeq ($(OPENJDK_TARGET_OS), windows)
       WGLSurfaceData.c
 
   LIBAWT_LANG := C++
-  LIBAWT_CFLAGS += -EHsc -MD -DUNICODE -D_UNICODE
+  LIBAWT_CFLAGS += -EHsc -C -MD -DUNICODE -D_UNICODE
   ifeq ($(OPENJDK_TARGET_CPU_BITS), 64)
     LIBAWT_CFLAGS += -DMLIB_OS64BIT
   endif
@@ -473,10 +473,10 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBAWT, \
     INCLUDE_FILES := $(LIBAWT_FILES), \
     LANG := $(LIBAWT_LANG), \
     OPTIMIZATION := LOW, \
-    CFLAGS := $(CFLAGS_JDKLIB) $(LIBAWT_CFLAGS), \
+    CFLAGS := -MD $(CFLAGS_JDKLIB) $(LIBAWT_CFLAGS), \
     ASFLAGS := $(LIBAWT_ASFLAGS), \
     MAPFILE := $(LIBAWT_MAPFILE), \
-    LDFLAGS := $(LDFLAGS_JDKLIB) $(call SET_SHARED_LIBRARY_ORIGIN), \
+    LDFLAGS := /LIBPATH:"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x64\store" $(LDFLAGS_JDKLIB) /NODEFAULTLIB:"libcpmt.lib" $(call SET_SHARED_LIBRARY_ORIGIN), \
     LDFLAGS_solaris := -R/usr/dt/lib$(OPENJDK_TARGET_CPU_ISADIR) -R$(OPENWIN_LIB)$(OPENJDK_TARGET_CPU_ISADIR), \
     LDFLAGS_SUFFIX_linux := -ljvm $(LIBM) $(LIBDL) -ljava, \
     LDFLAGS_SUFFIX_solaris := -ljvm $(LIBM) $(LIBDL) -ljava -lc, \
@@ -489,10 +489,10 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBAWT, \
         -framework ApplicationServices \
         -framework AudioToolbox \
         -ljava, \
-    LDFLAGS_SUFFIX_windows := kernel32.lib user32.lib gdi32.lib winspool.lib \
+    LDFLAGS_SUFFIX_windows := msvcrt.lib msvcprt.lib vcruntime.lib ucrt.lib kernel32.lib user32.lib gdi32.lib winspool.lib \
         imm32.lib ole32.lib uuid.lib shell32.lib \
         comdlg32.lib winmm.lib comctl32.lib shlwapi.lib \
-        delayimp.lib jvm.lib $(WIN_JAVA_LIB) advapi32.lib \
+        delayimp.lib runtimeobject.lib jvm.lib $(WIN_JAVA_LIB) advapi32.lib \
         -DELAYLOAD:user32.dll -DELAYLOAD:gdi32.dll \
         -DELAYLOAD:shell32.dll -DELAYLOAD:winmm.dll \
         -DELAYLOAD:winspool.drv -DELAYLOAD:imm32.dll \
