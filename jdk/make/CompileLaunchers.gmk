@@ -471,7 +471,7 @@ $(eval $(call SetupNativeCompilation,BUILD_UNPACKEXE, \
     EXCLUDE_FILES := jni.cpp, \
     LANG := $(UNPACKEXE_LANG), \
     OPTIMIZATION := LOW, \
-    CFLAGS := $(UNPACKEXE_CFLAGS) $(CXXFLAGS_JDKEXE) \
+    CFLAGS := $(UNPACKEXE_CFLAGS) $(CXXFLAGS_JDKEXE) $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" \
         -DFULL, \
     CFLAGS_release := -DPRODUCT, \
     CFLAGS_linux := -fPIC, \

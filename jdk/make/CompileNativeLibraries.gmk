@@ -42,8 +42,8 @@ $(eval $(call FillCacheFind, $(JDK_TOPDIR)/src))
 include Tools.gmk
 
 # Include the javah generated headers.
-CFLAGS_JDKLIB += -I$(JDK_OUTPUTDIR)/gensrc_headers
-CXXFLAGS_JDKLIB += -I$(JDK_OUTPUTDIR)/gensrc_headers
+CFLAGS_JDKLIB += $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" -I$(JDK_OUTPUTDIR)/gensrc_headers
+CXXFLAGS_JDKLIB += $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" -I$(JDK_OUTPUTDIR)/gensrc_headers
 
 # Put the libraries here. Different locations for different target apis.
 ifeq ($(OPENJDK_TARGET_OS_API), posix)

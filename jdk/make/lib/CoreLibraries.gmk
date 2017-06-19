@@ -208,9 +208,10 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBJAVA, \
     LANG := C, \
     OPTIMIZATION := HIGH, \
     CFLAGS := $(CFLAGS_JDKLIB) \
+		$(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" \
         $(LIBJAVA_CFLAGS), \
     MAPFILE := $(JDK_TOPDIR)/make/mapfiles/libjava/mapfile-vers, \
-    LDFLAGS := $(LDFLAGS_JDKLIB) \
+    LDFLAGS := /LIBPATH:"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x64\store" $(LDFLAGS_JDKLIB) \
         $(call SET_SHARED_LIBRARY_ORIGIN), \
     LDFLAGS_SUFFIX_posix := -ljvm -lverify, \
     LDFLAGS_SUFFIX_solaris := -lsocket -lnsl -lscf $(LIBDL) $(BUILD_LIBFDLIBM) -lc, \
@@ -223,8 +224,8 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBJAVA, \
     LDFLAGS_SUFFIX_windows := -export:winFileHandleOpen -export:handleLseek \
         -export:getErrorString \
         jvm.lib $(BUILD_LIBFDLIBM) $(WIN_VERIFY_LIB) \
-        shell32.lib delayimp.lib -DELAYLOAD:shell32.dll \
-        advapi32.lib version.lib, \
+        kernel32.lib delayimp.lib -DELAYLOAD:shell32.dll \
+        runtimeobject.lib bcrypt.lib version.lib, \
     VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
     RC_FLAGS := $(RC_FLAGS) \
         -D "JDK_FNAME=java.dll" \
@@ -309,7 +310,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBUNPACK, \
     EXCLUDE_FILES := main.cpp, \
     LANG := C++, \
     OPTIMIZATION := LOW, \
-    CFLAGS := $(CXXFLAGS_JDKLIB) \
+    CFLAGS := $(CXXFLAGS_JDKLIB) $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" -EHsc \
         -DNO_ZLIB -DUNPACK_JNI -DFULL, \
     CFLAGS_release := -DPRODUCT, \
     MAPFILE := $(JDK_TOPDIR)/make/mapfiles/libunpack/mapfile-vers, \
