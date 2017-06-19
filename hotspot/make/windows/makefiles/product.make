@@ -53,19 +53,22 @@ HS_BUILD_ID=$(HS_BUILD_VER)
 $(Res_Files): FORCE
 
 $(AOUT): $(Res_Files) $(Obj_Files) $(BUILD_PCH_FILE) vm.def
-	$(LD) @<<
+	$(LD) /LIBPATH:"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x64\store" @<<
   $(LD_FLAGS) /MANIFEST /out:$@ /implib:$*.lib /def:vm.def $(Obj_Files) $(BUILD_PCH_FILE) $(Res_Files)
 <<
+
 !if "$(MT)" != ""
 # The previous link command created a .manifest file that we want to
 # insert into the linked artifact so we do not need to track it
 # separately.  Use ";#2" for .dll and ";#1" for .exe:
+# $(RM) $*.map $*.pdb
+# @TODO: Rather switch ZIP_DEBUGINFO_FILES, but I dont know ehre currently.
 	$(MT) /manifest $@.manifest /outputresource:$@;#2
 !endif
 !if "$(ENABLE_FULL_DEBUG_SYMBOLS)" == "1"
 !if "$(ZIP_DEBUGINFO_FILES)" == "1"
+	@ECHO $(LD_FLAGS) $(Obj_Files)
 	$(ZIPEXE) -q $*.diz $*.map $*.pdb
-	$(RM) $*.map $*.pdb
 !endif
 !endif
 

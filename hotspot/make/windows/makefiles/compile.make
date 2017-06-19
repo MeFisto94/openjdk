@@ -153,9 +153,9 @@ COMPILER_NAME=VS2012
 # By default, we do not want to use the debug version of the msvcrt.dll file
 #   but if MFC_DEBUG is defined in the environment it will be used.
 MS_RUNTIME_OPTION = /MD
-!if "$(MFC_DEBUG)" == "true"
-MS_RUNTIME_OPTION = /MDd /D "_DEBUG"
-!endif
+#!if "$(MFC_DEBUG)" == "true"
+#MS_RUNTIME_OPTION = /MDd /D "_DEBUG"
+#!endif
 
 # VS2012 and later won't work with:
 #     /D _STATIC_CPPLIB /D _DISABLE_DEPRECATE_STATIC_CPPLIB
@@ -164,7 +164,7 @@ MS_RUNTIME_OPTION = /MDd /D "_DEBUG"
 STATIC_CPPLIB_OPTION = /D _STATIC_CPPLIB /D _DISABLE_DEPRECATE_STATIC_CPPLIB
 MS_RUNTIME_OPTION = $(MS_RUNTIME_OPTION) $(STATIC_CPPLIB_OPTION)
 !endif
-CXX_FLAGS=$(CXX_FLAGS) $(MS_RUNTIME_OPTION)
+CXX_FLAGS=$(CXX_FLAGS) $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" $(MS_RUNTIME_OPTION)
 
 # How /GX option is spelled (Dirty Hack)
 GX_OPTION = /EHsc
