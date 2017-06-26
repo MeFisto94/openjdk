@@ -32,6 +32,7 @@
 #include "runtime/perfMemory.hpp"
 #include "services/memTracker.hpp"
 #include "utilities/exceptions.hpp"
+#include "utilities/uwp.hpp"
 
 #include <windows.h>
 #include <sys/types.h>
@@ -545,7 +546,6 @@ static bool is_alive(int pid) {
 static bool is_filesystem_secure(const char* path) {
 
   char root_path[MAX_PATH];
-  char fs_type[MAX_PATH];
 
   if (PerfBypassFileSystemCheck) {
     if (PrintMiscellaneous && Verbose) {
@@ -573,9 +573,13 @@ static bool is_filesystem_secure(const char* path) {
   assert(strchr(root_path, ':') != NULL, "bad device specifier format");
   assert(strchr(root_path, '\\') != NULL, "bad device specifier format");
 
-  DWORD maxpath;
+  #ifdef UWP
+	return false; // We can't get Information about the Volume so we just assume it's unsafe.
+	// Especially since we can't do much in UWP to protected our data from being written.
+  #else
   DWORD flags;
-
+  DWORD maxpath;
+  char fs_type[MAX_PATH];
   if (!GetVolumeInformation(root_path, NULL, 0, NULL, &maxpath,
                             &flags, fs_type, MAX_PATH)) {
     // we can't get information about the volume, so assume unsafe.
@@ -606,6 +610,7 @@ static bool is_filesystem_secure(const char* path) {
   }
 
   return true;
+  #endif
 }
 
 // cleanup stale shared memory resources

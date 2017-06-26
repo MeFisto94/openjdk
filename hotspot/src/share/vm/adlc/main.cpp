@@ -24,6 +24,7 @@
 
 // MAIN.CPP - Entry point for the Architecture Description Language Compiler
 #include "adlc.hpp"
+#include <Roapi.h>
 #using <Windows.winmd>
 #using <Platform.winmd>
 

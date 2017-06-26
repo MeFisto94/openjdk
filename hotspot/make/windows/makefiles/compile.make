@@ -255,7 +255,9 @@ SAFESEH_FLAG = /SAFESEH
 LD_FLAGS = $(SAFESEH_FLAG) $(LD_FLAGS)
 !endif
 
-CXX_FLAGS = $(CXX_FLAGS) $(MP_FLAG)
+# We should use WINAPI_FAMILY_APP, but then we can't use the appropriate structs in our stub winAPI methods and we would have to
+# rewrite stuff to add structs and/or remove much more code
+CXX_FLAGS = $(CXX_FLAGS) -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -D_CRT_BUILD_DESKTOP_APP=0 -DUWP=true $(MP_FLAG)
 
 # If NO_OPTIMIZATIONS is defined in the environment, turn everything off
 !ifdef NO_OPTIMIZATIONS
@@ -267,9 +269,8 @@ FASTDEBUG_OPT_OPTION = $(DEBUG_OPT_OPTION)
 !if "x$(LD)" == "x"
 LD=link.exe
 !endif
-LD_FLAGS= $(LD_FLAGS) kernel32.lib gdi32.lib winspool.lib \
- comdlg32.lib advapi32.lib runtimeobject.lib shell32.lib ole32.lib oleaut32.lib \
- uuid.lib Ws2_32.lib winmm.lib /nologo /machine:$(MACHINE) /opt:REF \
+LD_FLAGS= $(LD_FLAGS) WindowsApp.lib runtimeobject.lib \
+ /nologo /machine:$(MACHINE) /opt:REF \
  /opt:ICF,8
 !if "$(ENABLE_FULL_DEBUG_SYMBOLS)" == "1"
 LD_FLAGS= $(LD_FLAGS) /map /debug

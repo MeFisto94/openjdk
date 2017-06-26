@@ -53,6 +53,7 @@
 #include "runtime/timer.hpp"
 #include "utilities/events.hpp"
 #include "utilities/vmError.hpp"
+#include "utilities/uwp.hpp"
 
 # include "unwind_windows_x86.hpp"
 #undef REG_SP
@@ -347,7 +348,11 @@ bool os::platform_print_native_stack(outputStream* st, void* context,
   if (context != NULL) {
     memcpy(&ctx, context, sizeof(ctx));
   } else {
-    RtlCaptureContext(&ctx);
+	#ifndef UWP
+		RtlCaptureContext(&ctx);
+	#else
+	  return false;
+	#endif
   }
 
   st->print_cr("Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)");

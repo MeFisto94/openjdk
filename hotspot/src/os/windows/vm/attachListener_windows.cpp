@@ -31,6 +31,11 @@
 #include <windows.h>
 #include <signal.h>             // SIGBREAK
 
+// UWP Port: This code relies heavily on WinAPI IPC Methods which haven been removed heavily.
+// Apart from that, CreateRemoteThread implies that this would be local debugging only, which
+// does not make sense mostly, we would rather debug using TCP (which should actually continue to work,
+// with the limitation that loopback doesn't work, meaning that you cannot tcp debug a target on localhost).
+
 // The AttachListener thread services a queue of operations. It blocks in the dequeue
 // function until an operation is enqueued. A client enqueues an operation by creating
 // a thread in this process using the Win32 CreateRemoteThread function. That thread
@@ -52,7 +57,6 @@
 // case no new operations would be executed but the VM would continue as normal.
 // As only suitably privileged processes can open this process we concluded that
 // this wasn't worth worrying about.
-
 
 // forward reference
 class Win32AttachOperation;
@@ -258,14 +262,16 @@ Win32AttachOperation* Win32AttachListener::dequeue() {
 HANDLE Win32AttachOperation::open_pipe() {
   HANDLE hPipe;
 
-  hPipe = ::CreateFile( pipe(),  // pipe name
+  //https://docs.microsoft.com/en-us/uwp/api/windows.applicationmodel.appservice ?
+  /*hPipe = ::CreateFile( pipe(),  // pipe name
                         GENERIC_WRITE,   // write only
                         0,              // no sharing
                         NULL,           // default security attributes
                         OPEN_EXISTING,  // opens existing pipe
                         0,              // default attributes
                         NULL);          // no template file
-
+  */
+  hPipe = INVALID_HANDLE_VALUE;
   if (hPipe != INVALID_HANDLE_VALUE) {
     // shouldn't happen as there is a pipe created per operation
     if (::GetLastError() == ERROR_PIPE_BUSY) {

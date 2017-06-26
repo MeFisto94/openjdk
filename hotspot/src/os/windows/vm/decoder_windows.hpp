@@ -25,10 +25,9 @@
 #ifndef OS_WINDOWS_VM_DECODER_WINDOWS_HPP
 #define OS_WINDOWS_VM_DECIDER_WINDOWS_HPP
 
+#include "utilities/decoder.hpp"
 #include <windows.h>
 #include <imagehlp.h>
-
-#include "utilities/decoder.hpp"
 
 // functions needed for decoding symbols
 typedef DWORD (WINAPI *pfn_SymSetOptions)(DWORD);

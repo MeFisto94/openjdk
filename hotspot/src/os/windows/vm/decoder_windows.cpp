@@ -43,7 +43,7 @@ WindowsDecoder::WindowsDecoder() {
 
 void WindowsDecoder::initialize() {
   if (!has_error() && _dbghelp_handle == NULL) {
-    HMODULE handle = ::LoadLibrary("dbghelp.dll");
+    HMODULE handle = LoadPackagedLibrary(L"dbghelp.dll", 0);
     if (!handle) {
       _decoder_status = helper_not_found;
       return;
@@ -102,23 +102,8 @@ void WindowsDecoder::initialize() {
       }
 
       char tmp_path[MAX_PATH];
-      DWORD dwSize;
-      HMODULE hJVM = ::GetModuleHandle("jvm.dll");
-      tmp_path[0] = '\0';
-      // append the path where jvm.dll is located
-      if (hJVM != NULL && (dwSize = ::GetModuleFileName(hJVM, tmp_path, sizeof(tmp_path))) > 0) {
-        while (dwSize > 0 && tmp_path[dwSize] != '\\') {
-          dwSize --;
-        }
 
-        tmp_path[dwSize] = '\0';
-
-        if (dwSize > 0 && len > (int)dwSize + 1) {
-          strncat(paths, os::path_separator(), 1);
-          strncat(paths, tmp_path, dwSize);
-          len -= dwSize + 1;
-        }
-      }
+	  // Had to remove checking for jvm.dll's path since GetModuleHandle is not available
 
       // append $JRE/bin. Arguments::get_java_home actually returns $JRE
       // path

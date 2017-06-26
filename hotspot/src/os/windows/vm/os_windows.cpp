@@ -26,9 +26,17 @@
 /#define _WIN32_WINNT 0x500 */
 
 /* LoadPackagedLibrary (UWP) requires Win8 (see SDKDDKVer.h for Numbers)*/
-#define _WIN32_WINNT 0x0602
+// VirtualAllocFromApp Requires Win 10 though
+#ifndef _WIN32_WINNT
+	#define _WIN32_WINNT 0x0A00
+#endif
 
-#include <winsock2.h>
+#ifndef UWP
+	#define UWP true
+#endif
+
+#include <winsock2.h> // winsock2 has to be included before windows.h is included, because it would pull in winsock(1).h
+#include "utilities/uwp.hpp"
 
 // no precompiled headers
 #include "classfile/classLoader.hpp"
@@ -84,6 +92,7 @@
 #include <sys/timeb.h>
 #include <objidl.h>
 #include <shlobj.h>
+//#include <ws2tcpip.h>
 
 #include <malloc.h>
 #include <signal.h>
@@ -245,6 +254,9 @@ void os::init_system_properties_values() {
      * 4. Windows directory (GetWindowsDirectory)
      * 5. The PATH environment variable
      * 6. The current directory
+	 *
+	 * UWP Note: A) We dont need library search paths anymore (we can't even use them)
+	 * B) 3, 4 and 5 are unsupported APIs
      */
 
     char *library_path;
@@ -727,19 +739,57 @@ bool os::has_allocatable_memory_limit(julong* limit) {
 typedef UINT_PTR DWORD_PTR;
 #endif
 
+// Helper function to count set bits in the processor mask.
+DWORD CountSetBits(ULONG_PTR bitMask)
+{
+	DWORD LSHIFT = sizeof(ULONG_PTR) * 8 - 1;
+	DWORD bitSetCount = 0;
+	ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;
+	DWORD i;
+
+	for (i = 0; i <= LSHIFT; ++i)
+	{
+		bitSetCount += ((bitMask & bitTest) ? 1 : 0);
+		bitTest /= 2;
+	}
+
+	return bitSetCount;
+}
+
 int os::active_processor_count() {
   DWORD_PTR lpProcessAffinityMask = 0;
   DWORD_PTR lpSystemAffinityMask = 0;
   int proc_count = processor_count();
-  if (proc_count <= sizeof(UINT_PTR) * BitsPerByte &&
-      GetProcessAffinityMask(GetCurrentProcess(), &lpProcessAffinityMask, &lpSystemAffinityMask)) {
-    // Nof active processors is number of bits in process affinity mask
-    int bitcount = 0;
-    while (lpProcessAffinityMask != 0) {
-      lpProcessAffinityMask = lpProcessAffinityMask & (lpProcessAffinityMask-1);
-      bitcount++;
-    }
-    return bitcount;
+
+  #ifndef UWP
+	if (proc_count <= sizeof(UINT_PTR) * BitsPerByte &&
+		GetProcessAffinityMask(GetCurrentProcess(), &lpProcessAffinityMask, &lpSystemAffinityMask)) {
+	// Nof active processors is number of bits in process affinity mask
+	int bitcount = 0;
+	while (lpProcessAffinityMask != 0) {
+		lpProcessAffinityMask = lpProcessAffinityMask & (lpProcessAffinityMask-1);
+		bitcount++;
+	}
+	return bitcount;
+  #else
+	if (proc_count <= sizeof(UINT_PTR) * BitsPerByte) {
+		DWORD size = 0;
+		GetLogicalProcessorInformation(NULL, &size); // Query needed size
+		PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION)::malloc(size);
+
+		if (!GetLogicalProcessorInformation(lpi, &size)) {
+			free((void*)lpi);
+			return 0;
+		} else {
+			// to be correct we would have to iterate over in increments of sizeof(SYSTEM_LPI), but
+			// since our UWP systems are unlikely to have more than one processor and it's unlikely
+			// that this value actually matters there.
+			int logicalProcessorCount = CountSetBits(lpi->ProcessorMask);
+			free((void*)lpi);
+			return logicalProcessorCount;
+		}
+  #endif
+
   } else {
     return proc_count;
   }
@@ -1285,6 +1335,9 @@ const char* os::get_current_directory(char *buf, size_t buflen) {
 //
 static bool _addr_in_ntdll( address addr )
 {
+#ifdef UWP
+	return false; // GetModuleHandle and GetModuleInformation are forbidden
+#else
   HMODULE hmod;
   MODULEINFO minfo;
 
@@ -1299,6 +1352,7 @@ static bool _addr_in_ntdll( address addr )
     return true;
   else
     return false;
+#endif
 }
 #endif
 
@@ -1977,10 +2031,12 @@ void os::signal_init_pd() {
   // the CTRL-BREAK thread dump mechanism is also disabled in this
   // case.  See bugs 4323062, 4345157, and related bugs.
 
-  if (!ReduceSignalUsage) {
-    // Add a CTRL-C handler
-    SetConsoleCtrlHandler(consoleHandler, TRUE);
-  }
+  #ifndef UWP // UWP does not have a console where one could trigger ctrl+c
+	if (!ReduceSignalUsage) {
+		// Add a CTRL-C handler
+		SetConsoleCtrlHandler(consoleHandler, TRUE);
+	}
+  #endif
 }
 
 void os::signal_notify(int signal_number) {
@@ -2738,6 +2794,11 @@ public:
   }
 
   bool build() {
+	#ifdef UWP
+	  return false; // We wont have multi processor systems in NUMA configuration on UWP
+	  // or at least we cant support it
+
+	#else
     DWORD_PTR proc_aff_mask;
     DWORD_PTR sys_aff_mask;
     if (!GetProcessAffinityMask(GetCurrentProcess(), &proc_aff_mask, &sys_aff_mask)) return false;
@@ -2753,6 +2814,7 @@ public:
       }
     }
     return (_numa_used_node_count > 1);
+	#endif
   }
 
   int get_count() {return _numa_used_node_count;}
@@ -2862,7 +2924,7 @@ static char* allocate_pages_individually(size_t bytes, char* addr, DWORD flags, 
     // Overflowed.
     return NULL;
   }
-  p_buf = (char *) VirtualAlloc(addr,
+  p_buf = (char *) VirtualAllocFromApp(addr,
                                 size_of_reserve,  // size of Reserve
                                 MEM_RESERVE,
                                 PAGE_READWRITE);
@@ -2908,7 +2970,7 @@ static char* allocate_pages_individually(size_t bytes, char* addr, DWORD flags, 
       p_new = NULL;
     } else {
       if (!UseNUMAInterleaving) {
-        p_new = (char *) VirtualAlloc(next_alloc_addr,
+        p_new = (char *) VirtualAllocFromApp(next_alloc_addr,
                                       bytes_to_rq,
                                       flags,
                                       prot);
@@ -3069,7 +3131,7 @@ char* os::pd_reserve_memory(size_t bytes, char* addr, size_t alignment_hint) {
   // will go thru reserve_memory_special rather than thru here.
   bool use_individual = (UseNUMAInterleaving && !UseLargePages);
   if (!use_individual) {
-    res = (char*)VirtualAlloc(addr, bytes, MEM_RESERVE, PAGE_READWRITE);
+    res = (char*)VirtualAllocFromApp(addr, bytes, MEM_RESERVE, PAGE_READWRITE);
   } else {
     elapsedTimer reserveTimer;
     if( Verbose && PrintMiscellaneous ) reserveTimer.start();
@@ -3152,7 +3214,7 @@ char* os::reserve_memory_special(size_t bytes, size_t alignment, char* addr, boo
     }
     // normal policy just allocate it all at once
     DWORD flag = MEM_RESERVE | MEM_COMMIT | MEM_LARGE_PAGES;
-    char * res = (char *)VirtualAlloc(addr, bytes, flag, prot);
+    char * res = (char *)VirtualAllocFromApp(addr, bytes, flag, prot);
     if (res != NULL) {
       MemTracker::record_virtual_memory_reserve_and_commit((address)res, bytes, CALLER_PC);
     }
@@ -3192,14 +3254,14 @@ bool os::pd_commit_memory(char* addr, size_t bytes, bool exec) {
   // is always within a reserve covered by a single VirtualAlloc
   // in that case we can just do a single commit for the requested size
   if (!UseNUMAInterleaving) {
-    if (VirtualAlloc(addr, bytes, MEM_COMMIT, PAGE_READWRITE) == NULL) {
+    if (VirtualAllocFromApp(addr, bytes, MEM_COMMIT, PAGE_READWRITE) == NULL) {
       NOT_PRODUCT(warn_fail_commit_memory(addr, bytes, exec);)
       return false;
     }
     if (exec) {
       DWORD oldprot;
       // Windows doc says to use VirtualProtect to get execute permissions
-      if (!VirtualProtect(addr, bytes, PAGE_EXECUTE_READWRITE, &oldprot)) {
+      if (!VirtualProtectFromApp(addr, bytes, PAGE_EXECUTE_READWRITE, &oldprot)) {
         NOT_PRODUCT(warn_fail_commit_memory(addr, bytes, exec);)
         return false;
       }
@@ -3217,7 +3279,7 @@ bool os::pd_commit_memory(char* addr, size_t bytes, bool exec) {
       MEMORY_BASIC_INFORMATION alloc_info;
       VirtualQuery(next_alloc_addr, &alloc_info, sizeof(alloc_info));
       size_t bytes_to_rq = MIN2(bytes_remaining, (size_t)alloc_info.RegionSize);
-      if (VirtualAlloc(next_alloc_addr, bytes_to_rq, MEM_COMMIT,
+      if (VirtualAllocFromApp(next_alloc_addr, bytes_to_rq, MEM_COMMIT,
                        PAGE_READWRITE) == NULL) {
         NOT_PRODUCT(warn_fail_commit_memory(next_alloc_addr, bytes_to_rq,
                                             exec);)
@@ -3225,7 +3287,7 @@ bool os::pd_commit_memory(char* addr, size_t bytes, bool exec) {
       }
       if (exec) {
         DWORD oldprot;
-        if (!VirtualProtect(next_alloc_addr, bytes_to_rq,
+        if (!VirtualProtectFromApp(next_alloc_addr, bytes_to_rq,
                             PAGE_EXECUTE_READWRITE, &oldprot)) {
           NOT_PRODUCT(warn_fail_commit_memory(next_alloc_addr, bytes_to_rq,
                                               exec);)
@@ -3311,17 +3373,17 @@ bool os::protect_memory(char* addr, size_t bytes, ProtType prot,
   // Pages in the region become guard pages. Any attempt to access a guard page
   // causes the system to raise a STATUS_GUARD_PAGE exception and turn off
   // the guard page status. Guard pages thus act as a one-time access alarm.
-  return VirtualProtect(addr, bytes, p, &old_status) != 0;
+  return VirtualProtectFromApp(addr, bytes, p, &old_status) != 0;
 }
 
 bool os::guard_memory(char* addr, size_t bytes) {
   DWORD old_status;
-  return VirtualProtect(addr, bytes, PAGE_READWRITE | PAGE_GUARD, &old_status) != 0;
+  return VirtualProtectFromApp(addr, bytes, PAGE_READWRITE | PAGE_GUARD, &old_status) != 0;
 }
 
 bool os::unguard_memory(char* addr, size_t bytes) {
   DWORD old_status;
-  return VirtualProtect(addr, bytes, PAGE_READWRITE, &old_status) != 0;
+  return VirtualProtectFromApp(addr, bytes, PAGE_READWRITE, &old_status) != 0;
 }
 
 void os::pd_realign_memory(char *addr, size_t bytes, size_t alignment_hint) { }
@@ -3670,9 +3732,9 @@ void os::win32::initialize_system_info() {
   GlobalMemoryStatusEx(&ms);
   _physical_memory = ms.ullTotalPhys;
 
-  OSVERSIONINFOEX oi;
-  oi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-  GetVersionEx((OSVERSIONINFO*)&oi);
+  OSVERSIONINFOEXW oi;
+  oi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+  GetVersionExW((OSVERSIONINFOW*)&oi);
   switch(oi.dwPlatformId) {
     case VER_PLATFORM_WIN32_WINDOWS: _is_nt = false; break;
     case VER_PLATFORM_WIN32_NT:
@@ -3859,10 +3921,10 @@ static jint initSock();
 // this is called _after_ the global arguments have been parsed
 jint os::init_2(void) {
   // Allocate a single page and mark it as readable for safepoint polling
-  address polling_page = (address)VirtualAlloc(NULL, os::vm_page_size(), MEM_RESERVE, PAGE_READONLY);
+  address polling_page = (address)VirtualAllocFromApp(NULL, os::vm_page_size(), MEM_RESERVE, PAGE_READONLY);
   guarantee( polling_page != NULL, "Reserve Failed for polling page");
 
-  address return_page  = (address)VirtualAlloc(polling_page, os::vm_page_size(), MEM_COMMIT, PAGE_READONLY);
+  address return_page  = (address)VirtualAllocFromApp(polling_page, os::vm_page_size(), MEM_COMMIT, PAGE_READONLY);
   guarantee( return_page != NULL, "Commit Failed for polling page");
 
   os::set_polling_page( polling_page );
@@ -3873,10 +3935,10 @@ jint os::init_2(void) {
 #endif
 
   if (!UseMembar) {
-    address mem_serialize_page = (address)VirtualAlloc(NULL, os::vm_page_size(), MEM_RESERVE, PAGE_READWRITE);
+    address mem_serialize_page = (address)VirtualAllocFromApp(NULL, os::vm_page_size(), MEM_RESERVE, PAGE_READWRITE);
     guarantee( mem_serialize_page != NULL, "Reserve Failed for memory serialize page");
 
-    return_page  = (address)VirtualAlloc(mem_serialize_page, os::vm_page_size(), MEM_COMMIT, PAGE_READWRITE);
+    return_page  = (address)VirtualAllocFromApp(mem_serialize_page, os::vm_page_size(), MEM_COMMIT, PAGE_READWRITE);
     guarantee( return_page != NULL, "Commit Failed for memory serialize page");
 
     os::set_memory_serialize_page( mem_serialize_page );
@@ -3994,14 +4056,14 @@ jint os::init_2(void) {
 // Mark the polling page as unreadable
 void os::make_polling_page_unreadable(void) {
   DWORD old_status;
-  if( !VirtualProtect((char *)_polling_page, os::vm_page_size(), PAGE_NOACCESS, &old_status) )
+  if( !VirtualProtectFromApp((char *)_polling_page, os::vm_page_size(), PAGE_NOACCESS, &old_status) )
     fatal("Could not disable polling page");
 };
 
 // Mark the polling page as readable
 void os::make_polling_page_readable(void) {
   DWORD old_status;
-  if( !VirtualProtect((char *)_polling_page, os::vm_page_size(), PAGE_READONLY, &old_status) )
+  if( !VirtualProtectFromApp((char *)_polling_page, os::vm_page_size(), PAGE_READONLY, &old_status) )
     fatal("Could not enable polling page");
 };
 
@@ -4414,19 +4476,23 @@ static int nonSeekAvailable(int fd, long *pbytes) {
     return FALSE;
   }
 
-  if (! ::PeekNamedPipe(han, NULL, 0, NULL, (LPDWORD)pbytes, NULL)) {
-        /* PeekNamedPipe fails when at EOF.  In that case we
-         * simply make *pbytes = 0 which is consistent with the
-         * behavior we get on Solaris when an fd is at EOF.
-         * The only alternative is to raise an Exception,
-         * which isn't really warranted.
-         */
-    if (::GetLastError() != ERROR_BROKEN_PIPE) {
-      return FALSE;
-    }
-    *pbytes = 0;
-  }
-  return TRUE;
+  #ifdef UWP
+	return FALSE;
+  #else
+	if (! ::PeekNamedPipe(han, NULL, 0, NULL, (LPDWORD)pbytes, NULL)) {
+		/* PeekNamedPipe fails when at EOF.  In that case we
+			* simply make *pbytes = 0 which is consistent with the
+			* behavior we get on Solaris when an fd is at EOF.
+			* The only alternative is to raise an Exception,
+			* which isn't really warranted.
+			*/
+	if (::GetLastError() != ERROR_BROKEN_PIPE) {
+		return FALSE;
+	}
+	*pbytes = 0;
+	}
+	return TRUE;
+  #endif
 }
 
 #define MAX_INPUT_EVENTS 2000
@@ -4434,7 +4500,13 @@ static int nonSeekAvailable(int fd, long *pbytes) {
 // This code is a copy of JDK's stdinAvailable
 // from src/windows/hpi/src/sys_api_md.c
 
+// Note: UWP does not have the Concept of STDIN or STDOUT,
+// it only supports using OutputDebugString()
+
 static int stdinAvailable(int fd, long *pbytes) {
+#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+	return FALSE;
+#else
   HANDLE han;
   DWORD numEventsRead = 0;      /* Number of events read from buffer */
   DWORD numEvents = 0;  /* Number of events in buffer */
@@ -4492,9 +4564,15 @@ static int stdinAvailable(int fd, long *pbytes) {
 
   *pbytes = (long) actualLength;
   return TRUE;
+#endif
 }
 
 // Map a block of memory.
+// UWP: Note that this is probably the trickiest method for UWP. Our Problem is that 
+// MapViewOfFile is supported while MapViewOfFileEx isn't.
+// my understanding is that this method requests mapping something to address addr
+// but the return parameter is where we actually got mapped, so we could just
+// ignore addr and live with it, it seems? *fingers crossed*
 char* os::pd_map_memory(int fd, const char* file_name, size_t file_offset,
                      char *addr, size_t bytes, bool read_only,
                      bool allow_exec) {
@@ -4522,7 +4600,7 @@ char* os::pd_map_memory(int fd, const char* file_name, size_t file_offset,
     // we might consider DLLizing the shared archive with a proper PE
     // header so that mapping executable + sharing is possible.
 
-    base = (char*) VirtualAlloc(addr, bytes, MEM_COMMIT | MEM_RESERVE,
+    base = (char*) VirtualAllocFromApp(addr, bytes, MEM_COMMIT | MEM_RESERVE,
                                 PAGE_READWRITE);
     if (base == NULL) {
       if (PrintMiscellaneous && Verbose) {
@@ -4588,7 +4666,7 @@ char* os::pd_map_memory(int fd, const char* file_name, size_t file_offset,
   if (allow_exec) {
     DWORD old_protect;
     DWORD exec_access = read_only ? PAGE_EXECUTE_READ : PAGE_EXECUTE_READWRITE;
-    bool res = VirtualProtect(base, bytes, exec_access, &old_protect) != 0;
+    bool res = VirtualProtectFromApp(base, bytes, exec_access, &old_protect) != 0;
 
     if (!res) {
       if (PrintMiscellaneous && Verbose) {
@@ -4958,6 +5036,12 @@ int os::fork_and_exec(char* cmd) {
 static int mallocDebugIntervalCounter = 0;
 static int mallocDebugCounter = 0;
 bool os::check_heap(bool force) {
+#ifdef UWP
+	// Unfortunately UWP does not support HeapXYZ() methods. It does support GetProcessHeap,
+	// but that's about it. Fortunately this method is only for debugging purposes so we have to hope
+	// that our c heap never corrupts.
+	return true;
+#else
   if (++mallocDebugCounter < MallocVerifyStart && !force) return true;
   if (++mallocDebugIntervalCounter >= MallocVerifyInterval || force) {
     // Note: HeapValidate executes two hardware breakpoints when it finds something
@@ -4984,6 +5068,7 @@ bool os::check_heap(bool force) {
     mallocDebugIntervalCounter = 0;
   }
   return true;
+#endif
 }
 
 
@@ -5288,19 +5373,35 @@ inline BOOL os::Kernel32Dll::SwitchToThreadAvailable() {
 
   // Help tools
 inline BOOL os::Kernel32Dll::HelpToolsAvailable() {
-  return true;
+  #ifndef UWP
+	return true;
+  #else
+	return false;
+  #endif
 }
 
 inline HANDLE os::Kernel32Dll::CreateToolhelp32Snapshot(DWORD dwFlags,DWORD th32ProcessId) {
-  return ::CreateToolhelp32Snapshot(dwFlags, th32ProcessId);
-}
+  #ifndef UWP
+    return ::CreateToolhelp32Snapshot(dwFlags, th32ProcessId);
+  #else
+    return INVALID_HANDLE_VALUE;
+  #endif
+	}
 
 inline BOOL os::Kernel32Dll::Module32First(HANDLE hSnapshot,LPMODULEENTRY32 lpme) {
-  return ::Module32First(hSnapshot, lpme);
+  #ifndef UWP
+    return ::Module32First(hSnapshot, lpme);
+  #else
+	return false;
+  #endif
 }
 
 inline BOOL os::Kernel32Dll::Module32Next(HANDLE hSnapshot,LPMODULEENTRY32 lpme) {
-  return ::Module32Next(hSnapshot, lpme);
+  #ifndef UWP
+	return ::Module32Next(hSnapshot, lpme);
+  #else
+	return false;
+  #endif
 }
 
 inline void os::Kernel32Dll::GetNativeSystemInfo(LPSYSTEM_INFO lpSystemInfo) {
@@ -5309,19 +5410,35 @@ inline void os::Kernel32Dll::GetNativeSystemInfo(LPSYSTEM_INFO lpSystemInfo) {
 
 // PSAPI API
 inline BOOL os::PSApiDll::EnumProcessModules(HANDLE hProcess, HMODULE *lpModule, DWORD cb, LPDWORD lpcbNeeded) {
-  return ::EnumProcessModules(hProcess, lpModule, cb, lpcbNeeded);
+  #ifndef UWP
+    return ::EnumProcessModules(hProcess, lpModule, cb, lpcbNeeded);
+  #else
+	return false;
+  #endif
 }
 
 inline DWORD os::PSApiDll::GetModuleFileNameEx(HANDLE hProcess, HMODULE hModule, LPTSTR lpFilename, DWORD nSize) {
-  return ::GetModuleFileNameEx(hProcess, hModule, lpFilename, nSize);
+  #ifndef UWP
+    return ::GetModuleFileNameEx(hProcess, hModule, lpFilename, nSize);
+  #else
+	return 0;
+  #endif
 }
 
 inline BOOL os::PSApiDll::GetModuleInformation(HANDLE hProcess, HMODULE hModule, LPMODULEINFO lpmodinfo, DWORD cb) {
-  return ::GetModuleInformation(hProcess, hModule, lpmodinfo, cb);
+  #ifndef UWP
+    return ::GetModuleInformation(hProcess, hModule, lpmodinfo, cb);
+  #else
+	return false;
+  #endif
 }
 
 inline BOOL os::PSApiDll::PSApiAvailable() {
-  return true;
+  #ifdef UWP
+	return false;
+  #else
+    return true;
+  #endif
 }
 
 

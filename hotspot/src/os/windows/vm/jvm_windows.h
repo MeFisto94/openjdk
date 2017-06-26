@@ -33,13 +33,10 @@
  * JNI conversion, which should be sorted out later.
  */
 
-// JDK7 requires VS2010
-#if _MSC_VER >= 1600
-// JDK7 minimum platform requirement: Windows XP
-#if _WIN32_WINNT < 0x0501
-#undef _WIN32_WINNT
-#define _WIN32_WINNT  0x0501
-#endif
+/* LoadPackagedLibrary (UWP) requires Win8 (see SDKDDKVer.h for Numbers)
+and VirtualAllocFromApp requires Win10 */
+#ifndef _WIN32_WINNT
+	#define _WIN32_WINNT 0x0A00
 #endif
 
 #include <windows.h>
