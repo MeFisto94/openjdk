@@ -140,7 +140,7 @@ extern "C" {
 		// Compiler says C4235, not supported on this architecture...
 	}
 
-	BOOL UWP_GetVersionExW(LPOSVERSIONINFOW lpVersionInformation) {
+	BOOL inline UWP_GetVersionExW(LPOSVERSIONINFOW lpVersionInformation) {
 		// https://www.codeproject.com/Articles/678606/Part-Overcoming-Windows-s-deprecation-of-GetVe would be the solution, but 
 		// so much useless work. Plus we want to state that this code is _not_ running in Windows 10 but rather UWP
 
