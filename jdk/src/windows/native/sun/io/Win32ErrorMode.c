@@ -34,5 +34,6 @@
 JNIEXPORT jlong JNICALL Java_sun_io_Win32ErrorMode_setErrorMode
   (JNIEnv *env, jclass thisClass, jlong mode)
 {
-    return (jlong)SetErrorMode((UINT)mode);
+	return mode; // UWP doesn't allow this
+    //return (jlong)SetErrorMode((UINT)mode);
 }

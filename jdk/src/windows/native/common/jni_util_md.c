@@ -30,6 +30,7 @@
 
 #include "jni.h"
 #include "jni_util.h"
+#include "winapi_stub.h"
 
 static void getParent(const TCHAR *path, TCHAR *dest) {
     char* lastSlash = max(strrchr(path, '\\'), strrchr(path, '/'));

@@ -29,6 +29,7 @@
 #include "io_util.h"
 #include "jlong.h"
 #include "io_util_md.h"
+#include "../../common/winapi_stub.h"
 
 #include "java_io_FileDescriptor.h"
 

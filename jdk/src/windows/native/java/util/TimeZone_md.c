@@ -123,7 +123,8 @@ static int getWinTimeZone(char *winZoneName, char *winMapID)
     WCHAR *stdNamePtr = tzi.StandardName;
 	DWORD timeType;
 
-    if (IsWindowsVistaOrGreater()) {
+    // if (IsWindowsVistaOrGreater()) { // UWP assumes yes
+	if (TRUE) {
         DYNAMIC_TIME_ZONE_INFORMATION dtzi;
 
         /*

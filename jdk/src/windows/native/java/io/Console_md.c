@@ -27,6 +27,7 @@
 #include "jni_util.h"
 #include "jvm.h"
 #include "java_io_Console.h"
+#include "../../common/winapi_stub.h"
 
 #include <stdlib.h>
 #include <Wincon.h>
@@ -54,17 +55,22 @@ JNIEXPORT jstring JNICALL
 Java_java_io_Console_encoding(JNIEnv *env, jclass cls)
 {
     char buf[64];
-    int cp = GetConsoleCP();
+    /*int cp = GetConsoleCP();
     if (cp >= 874 && cp <= 950)
         sprintf(buf, "ms%d", cp);
     else
-        sprintf(buf, "cp%d", cp);
+        sprintf(buf, "cp%d", cp);*/
+	// UWP doesnt support this, but I guess it doesnt support Consoles at all anyway
+	memcpy(buf, "msUNK", 5);
+	buf[5] = '\0';
     return JNU_NewStringPlatform(env, buf);
 }
 
 JNIEXPORT jboolean JNICALL
 Java_java_io_Console_echo(JNIEnv *env, jclass cls, jboolean on)
 {
+	// We cannot set echo on or off unfortunately
+	/*
     DWORD fdwMode;
     jboolean old;
     if (! GetConsoleMode(hStdIn, &fdwMode)) {
@@ -81,4 +87,7 @@ Java_java_io_Console_echo(JNIEnv *env, jclass cls, jboolean on)
         JNU_ThrowIOExceptionWithLastError(env, "SetConsoleMode failed");
     }
     return old;
+	*/
+	JNU_ThrowIOException(env, "Setting the Echo Mode is not supported on the UWP Platform");
+	return FALSE;
 }

@@ -23,10 +23,13 @@
  * questions.
  */
 
+/* UWP is Windows 10, not Vista */
 /* Access APIs for Windows Vista and above */
-#ifndef _WIN32_WINNT
+/*#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0602
-#endif
+#endif*/
+
+#include "../../common/winapi_stub.h"
 
 #include "jni.h"
 #include "jni_util.h"
@@ -139,12 +142,9 @@ static char* getConsoleEncoding()
     if (buf == NULL) {
         return NULL;
     }
-    cp = GetConsoleCP();
-    if (cp >= 874 && cp <= 950)
-        sprintf(buf, "ms%d", cp);
-    else
-        sprintf(buf, "cp%d", cp);
-    return buf;
+	memcpy(buf, "msUNK", 5);
+	buf[5] = '\0';
+	return buf;
 }
 
 // Exported entries for AWT
@@ -363,7 +363,7 @@ GetJavaProperties(JNIEnv* env)
         boolean is_workstation;
         boolean is_64bit;
         DWORD platformId;
-        {
+        /*{
             OSVERSIONINFOEX ver;
             ver.dwOSVersionInfoSize = sizeof(ver);
             GetVersionEx((OSVERSIONINFO *) &ver);
@@ -372,7 +372,14 @@ GetJavaProperties(JNIEnv* env)
             is_workstation = (ver.wProductType == VER_NT_WORKSTATION);
             platformId = ver.dwPlatformId;
             sprops.patch_level = _strdup(ver.szCSDVersion);
-        }
+        }*/
+		{
+			// UWP
+			majorVersion = 10;
+			minorVersion = 0;
+			is_workstation = TRUE;
+			platformId = VER_PLATFORM_WIN32_WINDOWS;
+		}
 
         {
             SYSTEM_INFO si;
@@ -381,7 +388,7 @@ GetJavaProperties(JNIEnv* env)
 
             is_64bit = (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64);
         }
-        do {
+        /*do {
             // Read the major and minor version number from kernel32.dll
             VS_FIXEDFILEINFO *file_info;
             WCHAR kernel32_path[MAX_PATH];
@@ -421,6 +428,7 @@ GetJavaProperties(JNIEnv* env)
             minorVersion = LOWORD(file_info->dwProductVersionMS);
             free(version_info);
         } while (0);
+		*/
 
         /*
          * From msdn page on OSVERSIONINFOEX, current as of this
@@ -517,7 +525,7 @@ GetJavaProperties(JNIEnv* env)
             } else if (majorVersion == 10) {
                 if (is_workstation) {
                     switch (minorVersion) {
-                    case  0: sprops.os_name = "Windows 10";           break;
+                    case  0: sprops.os_name = "Windows 10 UWP";           break;
                     default: sprops.os_name = "Windows NT (unknown)";
                     }
                 } else {
@@ -686,11 +694,11 @@ GetJavaProperties(JNIEnv* env)
     }
 
     /* Current directory */
-    {
+    /*{
         WCHAR buf[MAX_PATH];
         if (GetCurrentDirectory(sizeof(buf)/sizeof(WCHAR), buf) != 0)
             sprops.user_dir = _wcsdup(buf);
-    }
+    }*/
 
     sprops.file_separator = "\\";
     sprops.path_separator = ";";

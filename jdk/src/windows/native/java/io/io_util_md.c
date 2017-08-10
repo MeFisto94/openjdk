@@ -28,6 +28,7 @@
 #include "jvm.h"
 #include "io_util.h"
 #include "io_util_md.h"
+#include "../../common/winapi_stub.h"
 #include <stdio.h>
 #include <windows.h>
 
@@ -65,12 +66,13 @@ currentDir(int di) {
     root[1] = L':';
     root[2] = L'\\';
     root[3] = L'\0';
-    dt = GetDriveTypeW(root);
+    /*UWP: Hope that we encounter no invalid drives
+	dt = GetDriveTypeW(root);
     if (dt == DRIVE_UNKNOWN || dt == DRIVE_NO_ROOT_DIR) {
         return NULL;
-    } else {
+    } else {*/
         return _wgetdcwd(di, NULL, MAX_PATH);
-    }
+    //}
 }
 
 /* We cache the length of current working dir here to avoid
@@ -342,86 +344,15 @@ handleNonSeekAvailable(FD fd, long *pbytes) {
      *  connected to an exec'd process).
      * Standard Input is a special case.
      *
+	 * Unforunately UWP forbids Named Pipes
      */
-    HANDLE han;
-
-    if ((han = (HANDLE) fd) == INVALID_HANDLE_VALUE) {
-        return FALSE;
-    }
-
-    if (! PeekNamedPipe(han, NULL, 0, NULL, pbytes, NULL)) {
-        /* PeekNamedPipe fails when at EOF.  In that case we
-         * simply make *pbytes = 0 which is consistent with the
-         * behavior we get on Solaris when an fd is at EOF.
-         * The only alternative is to raise and Exception,
-         * which isn't really warranted.
-         */
-        if (GetLastError() != ERROR_BROKEN_PIPE) {
-            return FALSE;
-        }
-        *pbytes = 0;
-    }
-    return TRUE;
+	return FALSE;
 }
 
 static int
 handleStdinAvailable(FD fd, long *pbytes) {
-    HANDLE han;
-    DWORD numEventsRead = 0;    /* Number of events read from buffer */
-    DWORD numEvents = 0;        /* Number of events in buffer */
-    DWORD i = 0;                /* Loop index */
-    DWORD curLength = 0;        /* Position marker */
-    DWORD actualLength = 0;     /* Number of bytes readable */
-    BOOL error = FALSE;         /* Error holder */
-    INPUT_RECORD *lpBuffer;     /* Pointer to records of input events */
-    DWORD bufferSize = 0;
-
-    if ((han = GetStdHandle(STD_INPUT_HANDLE)) == INVALID_HANDLE_VALUE) {
-        return FALSE;
-    }
-
-    /* Construct an array of input records in the console buffer */
-    error = GetNumberOfConsoleInputEvents(han, &numEvents);
-    if (error == 0) {
-        return handleNonSeekAvailable(fd, pbytes);
-    }
-
-    /* lpBuffer must fit into 64K or else PeekConsoleInput fails */
-    if (numEvents > MAX_INPUT_EVENTS) {
-        numEvents = MAX_INPUT_EVENTS;
-    }
-
-    bufferSize = numEvents * sizeof(INPUT_RECORD);
-    if (bufferSize == 0)
-        bufferSize = 1;
-    lpBuffer = malloc(bufferSize);
-    if (lpBuffer == NULL) {
-        return FALSE;
-    }
-
-    error = PeekConsoleInput(han, lpBuffer, numEvents, &numEventsRead);
-    if (error == 0) {
-        free(lpBuffer);
-        return FALSE;
-    }
-
-    /* Examine input records for the number of bytes available */
-    for(i=0; i<numEvents; i++) {
-        if (lpBuffer[i].EventType == KEY_EVENT) {
-            KEY_EVENT_RECORD *keyRecord = (KEY_EVENT_RECORD *)
-                                          &(lpBuffer[i].Event);
-            if (keyRecord->bKeyDown == TRUE) {
-                CHAR *keyPressed = (CHAR *) &(keyRecord->uChar);
-                curLength++;
-                if (*keyPressed == '\r')
-                    actualLength = curLength;
-            }
-        }
-    }
-    if(lpBuffer != NULL)
-        free(lpBuffer);
-    *pbytes = (long) actualLength;
-    return TRUE;
+	// UWP also doesn't allow STDIN
+	return FALSE;
 }
 
 /*

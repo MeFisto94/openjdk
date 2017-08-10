@@ -23,11 +23,14 @@
  * questions.
  */
 
+/* UWP: NO WINXP but Win 10...*/
 /* Access APIs for WinXP and above */
-#ifndef _WIN32_WINNT
+/*#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
-#endif
+#endif*/
 
+
+#include "../../common/winapi_stub.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,14 +69,15 @@ Java_java_io_WinNTFileSystem_initIDs(JNIEnv *env, jclass cls)
     ids.path = (*env)->GetFieldID(env, fileClass, "path", "Ljava/lang/String;");
     CHECK_NULL(ids.path);
 
-    // GetFinalPathNameByHandle requires Windows Vista or newer
+    /* UWP doesnt like these
+	// GetFinalPathNameByHandle requires Windows Vista or newer
     if (GetModuleHandleExW((GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
                            (LPCWSTR)&CreateFileW, &handle) != 0)
     {
         GetFinalPathNameByHandle_func = (GetFinalPathNameByHandleProc)
             GetProcAddress(handle, "GetFinalPathNameByHandleW");
-    }
+    }*/
 }
 
 /* -- Path operations -- */
@@ -196,11 +200,42 @@ static BOOL getFileInformation(const WCHAR *path,
                            NULL);
     if (h == INVALID_HANDLE_VALUE)
         return FALSE;
-    result = GetFileInformationByHandle(h, finfo);
-    error = GetLastError();
-    if (CloseHandle(h))
-        SetLastError(error);
-    return result;
+
+	/* Due to UWP we cannot call "GetFileInformationByHandle" anymore but have to use Ex
+	multiple times to gather all the information. */
+
+	FILE_STANDARD_INFO standardInfo;
+	FILE_BASIC_INFO basicInfo;
+	FILE_ID_BOTH_DIR_INFO dirInfo;
+	FILE_ID_INFO idInfo;
+
+	if ( (!GetFileInformationByHandleEx(h, FileStandardInfo, &standardInfo, sizeof(FILE_STANDARD_INFO))) ||
+		 (!GetFileInformationByHandleEx(h, FileBasicInfo, &basicInfo, sizeof(FILE_BASIC_INFO))) ||
+		 (!GetFileInformationByHandleEx(h, FileIdInfo, &idInfo, sizeof(FILE_ID_INFO))) ) {
+		error = GetLastError();
+		if (CloseHandle(h)) {
+			SetLastError(error);
+		}
+
+		return FALSE;
+	}
+
+	finfo->dwFileAttributes                = basicInfo.FileAttributes;
+	finfo->dwVolumeSerialNumber            = (DWORD)idInfo.VolumeSerialNumber;
+	finfo->ftCreationTime.dwHighDateTime   = basicInfo.CreationTime.HighPart;
+	finfo->ftCreationTime.dwLowDateTime    = basicInfo.CreationTime.LowPart;
+	finfo->ftLastAccessTime.dwHighDateTime = basicInfo.LastAccessTime.HighPart;
+	finfo->ftLastAccessTime.dwLowDateTime  = basicInfo.LastAccessTime.LowPart;
+	finfo->ftLastWriteTime.dwHighDateTime  = basicInfo.LastWriteTime.HighPart;
+	finfo->ftLastWriteTime.dwLowDateTime   = basicInfo.LastWriteTime.LowPart;
+	// The FileIndex would only be supported for Directories and is not supported on NTFS for example, so we don't need that anymore.
+	finfo->nFileIndexHigh                  = 0;
+	finfo->nFileIndexLow				   = 0;
+	finfo->nFileSizeHigh				   = standardInfo.AllocationSize.HighPart;
+	finfo->nFileSizeLow					   = standardInfo.AllocationSize.LowPart;
+	finfo->nNumberOfLinks				   = standardInfo.NumberOfLinks;
+
+	return TRUE;
 }
 
 /**
@@ -852,7 +887,8 @@ Java_java_io_WinNTFileSystem_getDriveDirectory(JNIEnv *env, jobject this,
 JNIEXPORT jint JNICALL
 Java_java_io_WinNTFileSystem_listRoots0(JNIEnv *env, jclass ignored)
 {
-    return GetLogicalDrives();
+	// UWP wont tell you the logical drives
+	return 0; // GetLogicalDrives();
 }
 
 JNIEXPORT jlong JNICALL
@@ -863,7 +899,9 @@ Java_java_io_WinNTFileSystem_getSpace0(JNIEnv *env, jobject this,
     jlong rv = 0L;
     WCHAR *pathbuf = fileToNTPath(env, file, ids.path);
 
-    if (GetVolumePathNameW(pathbuf, volname, MAX_PATH_LENGTH)) {
+    //if (GetVolumePathNameW(pathbuf, volname, MAX_PATH_LENGTH)) {
+	//UWP: Unfortunately this isn't supported so we hope for GetDiskFreeSpaceExW to handle this
+	// it claims that you can specify "a directory on the disk"
         ULARGE_INTEGER totalSpace, freeSpace, usableSpace;
         if (GetDiskFreeSpaceExW(volname, &usableSpace, &totalSpace, &freeSpace)) {
             switch(t) {
@@ -880,7 +918,7 @@ Java_java_io_WinNTFileSystem_getSpace0(JNIEnv *env, jobject this,
                 assert(0);
             }
         }
-    }
+    //}
 
     free(pathbuf);
     return rv;

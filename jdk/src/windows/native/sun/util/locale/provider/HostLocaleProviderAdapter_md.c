@@ -25,6 +25,7 @@
 
 #include "sun_util_locale_provider_HostLocaleProviderAdapterImpl.h"
 #include "jni_util.h"
+#include "../../../../common/winapi_stub.h"
 #include <windows.h>
 #include <gdefs.h>
 #include <stdlib.h>
@@ -193,7 +194,8 @@ JNIEXPORT jstring JNICALL Java_sun_util_locale_provider_HostLocaleProviderAdapte
             break;
         case sun_util_locale_provider_HostLocaleProviderAdapterImpl_CAT_FORMAT:
         default:
-            langid = LANGIDFROMLCID(GetUserDefaultLCID());
+            // UWP... langid = LANGIDFROMLCID(GetUserDefaultLCID());
+			langid = LANGIDFROMLCID(GetUserDefaultUILanguage());
             break;
     }
 
