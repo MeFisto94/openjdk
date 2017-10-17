@@ -137,6 +137,21 @@ HANDLE inline UWP_GetStdHandle(DWORD nStdHandle) {
 	return INVALID_HANDLE_VALUE;
 }
 
+/* Implementations of POSIX/libc/msvcrt methods*/
+inline int __cdecl _getdrive() {
+	return 3; // This is the drive index, 3 returns C and should work for most paths, however code should not rely on paths at all anymore
+}
+
+inline char* __cdecl getenv(char const* _VarName) {
+	char *p = (char *)malloc(1); // Empty env var, 
+	p[0] = '\0';
+	return p;
+}
+
+inline int __cdecl _getpid() {
+	return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
+}
+
 #define CreateFile UWP_CreateFileA
 #define CreateFileW UWP_CreateFileW
 /*
