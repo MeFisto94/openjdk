@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <windows.h>
+#include "winapi_headers.h"
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
