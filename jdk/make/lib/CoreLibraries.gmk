@@ -199,6 +199,9 @@ ifeq ($(OPENJDK_TARGET_OS), solaris)
   endif
 endif
 
+# kernel32.lib delayimp.lib -DELAYLOAD:shell32.dll \
+\ #		bcrypt.lib version.lib, \
+
 $(eval $(call SetupNativeCompilation,BUILD_LIBJAVA, \
     LIBRARY := java, \
     OUTPUT_DIR := $(INSTALL_LIBRARIES_HERE), \
@@ -224,8 +227,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBJAVA, \
     LDFLAGS_SUFFIX_windows := -export:winFileHandleOpen -export:handleLseek \
         -export:getErrorString \
         jvm.lib $(BUILD_LIBFDLIBM) $(WIN_VERIFY_LIB) \
-        kernel32.lib delayimp.lib -DELAYLOAD:shell32.dll \
-        runtimeobject.lib bcrypt.lib version.lib, \
+        runtimeobject.lib WindowsApp.lib, \
     VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
     RC_FLAGS := $(RC_FLAGS) \
         -D "JDK_FNAME=java.dll" \
@@ -449,9 +451,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBJLI, \
         -export:JLI_CmdToArgs \
         -export:JLI_GetStdArgc \
         -export:JLI_GetStdArgs \
-        advapi32.lib \
-        comctl32.lib \
-        user32.lib, \
+        WindowsApp.lib, \
     VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
     RC_FLAGS := $(RC_FLAGS) \
         -D "JDK_FNAME=jli.dll" \

@@ -66,7 +66,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBATTACH, \
     LDFLAGS_solaris := -ldoor, \
     LDFLAGS_windows := /ORDER:@$(JDK_TOPDIR)/make/mapfiles/libattach/reorder-windows-$(OPENJDK_TARGET_CPU), \
     LDFLAGS_SUFFIX := $(LDFLAGS_JDKLIB_SUFFIX), \
-    LDFLAGS_SUFFIX_windows := $(WIN_JAVA_LIB) advapi32.lib psapi.lib, \
+    LDFLAGS_SUFFIX_windows := $(WIN_JAVA_LIB) runtimeobject.lib WindowsApp.lib, \
     OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/libattach, \
     DEBUG_SYMBOLS := true))
 
@@ -94,7 +94,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBDT_SOCKET, \
         $(call SET_SHARED_LIBRARY_ORIGIN), \
     LDFLAGS_SUFFIX_linux := -lpthread, \
     LDFLAGS_SUFFIX_solaris := -lnsl -lsocket -lc, \
-    LDFLAGS_SUFFIX_windows := $(LDFLAGS_JDKLIB_SUFFIX) -export:jdwpTransport_OnLoad ws2_32.lib, \
+    LDFLAGS_SUFFIX_windows := $(LDFLAGS_JDKLIB_SUFFIX) -export:jdwpTransport_OnLoad WindowsApp.lib, \
     VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
     RC_FLAGS := $(RC_FLAGS) \
         -D "JDK_FNAME=dt_socket.dll" \
@@ -236,7 +236,7 @@ LIBINSTRUMENT_LDFLAGS_SUFFIX :=
 
 ifeq ($(OPENJDK_TARGET_OS), windows)
   LIBINSTRUMENT_LDFLAGS += $(JDK_OUTPUTDIR)/objs/jli_static.lib $(WIN_JAVA_LIB) \
-      -export:Agent_OnAttach advapi32.lib
+      -export:Agent_OnAttach runtimeobject.lib WindowsApp.lib
   # Statically link the C runtime so that there are not dependencies on modules
   # not on the search patch when invoked from the Windows system directory
   # (or elsewhere).
@@ -329,7 +329,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBMANAGEMENT, \
         $(call SET_SHARED_LIBRARY_ORIGIN), \
     LDFLAGS_solaris := -lkstat, \
     LDFLAGS_SUFFIX := $(LDFLAGS_JDKLIB_SUFFIX), \
-    LDFLAGS_SUFFIX_windows := jvm.lib psapi.lib $(WIN_JAVA_LIB) advapi32.lib, \
+    LDFLAGS_SUFFIX_windows := jvm.lib $(WIN_JAVA_LIB) runtimeobject.lib WindowsApp.lib, \
     LDFLAGS_SUFFIX_aix := -lperfstat,\
     VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
     RC_FLAGS := $(RC_FLAGS) \
@@ -377,7 +377,7 @@ $(eval $(call SetupNativeCompilation,BUILD_LIBHPROF, \
     MAPFILE := $(JDK_TOPDIR)/make/mapfiles/libhprof/mapfile-vers, \
     LDFLAGS := $(LDFLAGS_JDKLIB) \
         $(call SET_SHARED_LIBRARY_ORIGIN), \
-    LDFLAGS_windows := wsock32.lib winmm.lib advapi32.lib, \
+    LDFLAGS_windows := runtimeobject.lib WindowsApp.lib, \
     LDFLAGS_SUFFIX_linux := $(LIBDL), \
     LDFLAGS_SUFFIX_macosx := $(LIBDL), \
     LDFLAGS_SUFFIX_solaris := -lsocket -lnsl $(LIBDL) -lc, \
