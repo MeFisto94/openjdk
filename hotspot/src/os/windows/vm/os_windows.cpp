@@ -1011,6 +1011,10 @@ static BOOL  (WINAPI *_MiniDumpWriteDump)  ( HANDLE, DWORD, HANDLE, MINIDUMP_TYP
                                             PMINIDUMP_USER_STREAM_INFORMATION, PMINIDUMP_CALLBACK_INFORMATION);
 
 void os::check_or_create_dump(void* exceptionRecord, void* contextRecord, char* buffer, size_t bufferSize) {
+#ifdef UWP
+	VMError::report_coredump_status("Minidumps are not supported in UWP Windows", false);
+	return;
+#else
   HINSTANCE dbghelp;
   EXCEPTION_POINTERS ep;
   MINIDUMP_EXCEPTION_INFORMATION mei;
@@ -1110,6 +1114,7 @@ void os::check_or_create_dump(void* exceptionRecord, void* contextRecord, char* 
   }
 
   CloseHandle(dumpFile);
+#endif
 }
 
 
