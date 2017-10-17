@@ -26,8 +26,13 @@
 #define OS_WINDOWS_VM_OS_WINDOWS_HPP
 // Win32_OS defines the interface to windows operating systems
 
+#ifndef _WIN32_WINNT
+	#define _WIN32_WINNT 0x0A00 // Win 10
+#endif
+
 //#include "../../../share/vm/utilities/uwp.hpp" // Should be the same as jdk's winapi_stub.h Maybe we just reference it from here
 #include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
+#include <WinSock2.h>
 
 // Information about the protection of the page at address '0' on this os.
 static bool zero_page_read_protected() { return true; }

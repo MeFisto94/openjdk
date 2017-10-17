@@ -26,6 +26,7 @@
 #define OS_WINDOWS_VM_DECIDER_WINDOWS_HPP
 
 #include "utilities/decoder.hpp"
+#include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
 #include <windows.h>
 #include <imagehlp.h>
 

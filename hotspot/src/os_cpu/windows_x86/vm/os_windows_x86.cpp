@@ -23,6 +23,7 @@
  */
 
 // no precompiled headers
+#include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
 #include "asm/macroAssembler.hpp"
 #include "classfile/classLoader.hpp"
 #include "classfile/systemDictionary.hpp"
