@@ -26,6 +26,7 @@
 #endif
 
 #include <windows.h>
+#include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
