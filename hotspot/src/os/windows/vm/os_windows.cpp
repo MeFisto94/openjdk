@@ -261,7 +261,7 @@ void os::init_system_properties_values() {
 
     char *library_path;
     char tmp[MAX_PATH];
-    char *path_str = ::getenv("PATH");
+	char *path_str = "";//getenv("PATH"); // would return nothing actually
 
     library_path = NEW_C_HEAP_ARRAY(char, MAX_PATH * 5 + sizeof(PACKAGE_DIR) +
         sizeof(BIN_DIR) + (path_str ? strlen(path_str) : 0) + 10, mtInternal);
@@ -1381,98 +1381,110 @@ typedef int (*EnumModulesCallbackFunc)(int, char *, address, unsigned, void *);
 // enumerate_modules for Windows NT, using PSAPI
 static int _enumerate_modules_winnt( int pid, EnumModulesCallbackFunc func, void * param)
 {
-  HANDLE   hProcess ;
+  #ifdef UWP
+	return 0;
+  #else
+	  HANDLE   hProcess ;
 
-# define MAX_NUM_MODULES 128
-  HMODULE     modules[MAX_NUM_MODULES];
-  static char filename[ MAX_PATH ];
-  int         result = 0;
+	# define MAX_NUM_MODULES 128
+	  HMODULE     modules[MAX_NUM_MODULES];
+	  static char filename[ MAX_PATH ];
+	  int         result = 0;
 
-  if (!os::PSApiDll::PSApiAvailable()) {
-    return 0;
-  }
+	  if (!os::PSApiDll::PSApiAvailable()) {
+		return 0;
+	  }
 
-  hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                         FALSE, pid ) ;
-  if (hProcess == NULL) return 0;
+	  hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+							 FALSE, pid ) ;
+	  if (hProcess == NULL) return 0;
 
-  DWORD size_needed;
-  if (!os::PSApiDll::EnumProcessModules(hProcess, modules,
-                           sizeof(modules), &size_needed)) {
-      CloseHandle( hProcess );
-      return 0;
-  }
+	  DWORD size_needed;
+	  if (!os::PSApiDll::EnumProcessModules(hProcess, modules,
+							   sizeof(modules), &size_needed)) {
+		  CloseHandle( hProcess );
+		  return 0;
+	  }
 
-  // number of modules that are currently loaded
-  int num_modules = size_needed / sizeof(HMODULE);
+	  // number of modules that are currently loaded
+	  int num_modules = size_needed / sizeof(HMODULE);
 
-  for (int i = 0; i < MIN2(num_modules, MAX_NUM_MODULES); i++) {
-    // Get Full pathname:
-    if(!os::PSApiDll::GetModuleFileNameEx(hProcess, modules[i],
-                             filename, sizeof(filename))) {
-        filename[0] = '\0';
-    }
+	  for (int i = 0; i < MIN2(num_modules, MAX_NUM_MODULES); i++) {
+		// Get Full pathname:
+		if(!os::PSApiDll::GetModuleFileNameEx(hProcess, modules[i],
+								 filename, sizeof(filename))) {
+			filename[0] = '\0';
+		}
 
-    MODULEINFO modinfo;
-    if (!os::PSApiDll::GetModuleInformation(hProcess, modules[i],
-                               &modinfo, sizeof(modinfo))) {
-        modinfo.lpBaseOfDll = NULL;
-        modinfo.SizeOfImage = 0;
-    }
+		MODULEINFO modinfo;
+		if (!os::PSApiDll::GetModuleInformation(hProcess, modules[i],
+								   &modinfo, sizeof(modinfo))) {
+			modinfo.lpBaseOfDll = NULL;
+			modinfo.SizeOfImage = 0;
+		}
 
-    // Invoke callback function
-    result = func(pid, filename, (address)modinfo.lpBaseOfDll,
-                  modinfo.SizeOfImage, param);
-    if (result) break;
-  }
+		// Invoke callback function
+		result = func(pid, filename, (address)modinfo.lpBaseOfDll,
+					  modinfo.SizeOfImage, param);
+		if (result) break;
+	  }
 
-  CloseHandle( hProcess ) ;
-  return result;
+	  CloseHandle( hProcess ) ;
+	  return result;
+  #endif
 }
 
 
 // enumerate_modules for Windows 95/98/ME, using TOOLHELP
 static int _enumerate_modules_windows( int pid, EnumModulesCallbackFunc func, void *param)
 {
-  HANDLE                hSnapShot ;
-  static MODULEENTRY32  modentry ;
-  int                   result = 0;
+  #ifdef UWP
+	return 0; // It's neither 95/98/ME nor supported
+  #else
+	  HANDLE                hSnapShot ;
+	  static MODULEENTRY32  modentry ;
+	  int                   result = 0;
 
-  if (!os::Kernel32Dll::HelpToolsAvailable()) {
-    return 0;
-  }
+	  if (!os::Kernel32Dll::HelpToolsAvailable()) {
+		return 0;
+	  }
 
-  // Get a handle to a Toolhelp snapshot of the system
-  hSnapShot = os::Kernel32Dll::CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid ) ;
-  if( hSnapShot == INVALID_HANDLE_VALUE ) {
-      return FALSE ;
-  }
+	  // Get a handle to a Toolhelp snapshot of the system
+	  hSnapShot = os::Kernel32Dll::CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid ) ;
+	  if( hSnapShot == INVALID_HANDLE_VALUE ) {
+		  return FALSE ;
+	  }
 
-  // iterate through all modules
-  modentry.dwSize = sizeof(MODULEENTRY32) ;
-  bool not_done = os::Kernel32Dll::Module32First( hSnapShot, &modentry ) != 0;
+	  // iterate through all modules
+	  modentry.dwSize = sizeof(MODULEENTRY32) ;
+	  bool not_done = os::Kernel32Dll::Module32First( hSnapShot, &modentry ) != 0;
 
-  while( not_done ) {
-    // invoke the callback
-    result=func(pid, modentry.szExePath, (address)modentry.modBaseAddr,
-                modentry.modBaseSize, param);
-    if (result) break;
+	  while( not_done ) {
+		// invoke the callback
+		result=func(pid, modentry.szExePath, (address)modentry.modBaseAddr,
+					modentry.modBaseSize, param);
+		if (result) break;
 
-    modentry.dwSize = sizeof(MODULEENTRY32) ;
-    not_done = os::Kernel32Dll::Module32Next( hSnapShot, &modentry ) != 0;
-  }
+		modentry.dwSize = sizeof(MODULEENTRY32) ;
+		not_done = os::Kernel32Dll::Module32Next( hSnapShot, &modentry ) != 0;
+	  }
 
-  CloseHandle(hSnapShot);
-  return result;
+	  CloseHandle(hSnapShot);
+	  return result;
+  #endif
 }
 
 int enumerate_modules( int pid, EnumModulesCallbackFunc func, void * param )
 {
-  // Get current process ID if caller doesn't provide it.
-  if (!pid) pid = os::current_process_id();
+  #ifdef UWP
+	return 0;
+  #else
+	  // Get current process ID if caller doesn't provide it.
+	  if (!pid) pid = os::current_process_id();
 
-  if (os::win32::is_nt()) return _enumerate_modules_winnt  (pid, func, param);
-  else                    return _enumerate_modules_windows(pid, func, param);
+	  if (os::win32::is_nt()) return _enumerate_modules_winnt  (pid, func, param);
+	  else                    return _enumerate_modules_windows(pid, func, param);
+  #endif
 }
 
 struct _modinfo {
@@ -1834,7 +1846,7 @@ void os::jvm_path(char *buf, jint buflen) {
      // and fix up the path so it looks like
      // libjvm.so is installed there (append a fake suffix
      // hotspot/libjvm.so).
-     char* java_home_var = ::getenv("JAVA_HOME");
+     char* java_home_var = ::getenv("JAVA_HOME"); // Will be empty, however that doesn't matter since all .dlls are loaded independent of their location anyway
      if (java_home_var != NULL && java_home_var[0] != 0 &&
          strlen(java_home_var) < (size_t)buflen) {
 
@@ -4509,7 +4521,7 @@ static int nonSeekAvailable(int fd, long *pbytes) {
 // it only supports using OutputDebugString()
 
 static int stdinAvailable(int fd, long *pbytes) {
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+#if UWP
 	return FALSE;
 #else
   HANDLE han;
