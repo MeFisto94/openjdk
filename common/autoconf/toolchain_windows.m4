@@ -91,14 +91,14 @@ AC_DEFUN([TOOLCHAIN_FIND_VISUAL_STUDIO_BAT_FILE],
     AC_MSG_ERROR([Cannot locate a valid Visual Studio installation])
   fi
 
-  if test "x$VS100COMNTOOLS" != x; then
-    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$VS100COMNTOOLS/../..], [VS100COMNTOOLS variable])
+  if test "x$VS140COMNTOOLS" != x; then
+    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$VS140COMNTOOLS/../..], [VS140COMNTOOLS variable])
   fi
   if test "x$PROGRAMFILES" != x; then
-    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$PROGRAMFILES/Microsoft Visual Studio 10.0], [well-known name])
+    TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([$PROGRAMFILES/Microsoft Visual Studio 14.0], [well-known name])
   fi
-  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files/Microsoft Visual Studio 10.0], [well-known name])
-  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files (x86)/Microsoft Visual Studio 10.0], [well-known name])
+  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files/Microsoft Visual Studio 14.0], [well-known name])
+  TOOLCHAIN_CHECK_POSSIBLE_VISUAL_STUDIO_ROOT([C:/Program Files (x86)/Microsoft Visual Studio 14.0], [well-known name])
 
   if test "x$ProgramW6432" != x; then
     TOOLCHAIN_CHECK_POSSIBLE_WIN_SDK_ROOT([$ProgramW6432/Microsoft SDKs/Windows/v7.1/Bin], [well-known name])
