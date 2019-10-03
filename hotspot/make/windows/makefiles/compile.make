@@ -257,7 +257,7 @@ LD_FLAGS = $(SAFESEH_FLAG) $(LD_FLAGS)
 
 # We should use WINAPI_FAMILY_APP instead of WINAPI_FAMILY_DESKTOP_APP, but then we can't use the appropriate structs in our stub winAPI methods and we would have to
 # rewrite stuff to add structs and/or remove much more code
-CXX_FLAGS = $(CXX_FLAGS) -DWINAPI_FAMILY=WINAPI_FAMILY_APP -D_CRT_BUILD_DESKTOP_APP=0 -DUWP=true $(MP_FLAG)
+CXX_FLAGS = $(CXX_FLAGS) -DWINAPI_FAMILY=WINAPI_FAMILY_APP -D_CRT_BUILD_DESKTOP_APP=0 -showIncludes -DUWP=true $(MP_FLAG)
 
 # If NO_OPTIMIZATIONS is defined in the environment, turn everything off
 !ifdef NO_OPTIMIZATIONS
