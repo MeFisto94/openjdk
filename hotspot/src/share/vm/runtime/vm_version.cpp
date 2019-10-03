@@ -151,11 +151,11 @@ const char* Abstract_VM_Version::vm_vendor() {
 const char* Abstract_VM_Version::vm_info_string() {
   switch (Arguments::mode()) {
     case Arguments::_int:
-      return UseSharedSpaces ? "interpreted mode, sharing" : "interpreted mode";
+      return UseSharedSpaces ? "interpreted mode, sharing (UWP build)" : "interpreted mode (UWP build)";
     case Arguments::_mixed:
-      return UseSharedSpaces ? "mixed mode, sharing"       :  "mixed mode";
+      return UseSharedSpaces ? "mixed mode, sharing (UWP build)"       :  "mixed mode (UWP build)";
     case Arguments::_comp:
-      return UseSharedSpaces ? "compiled mode, sharing"    : "compiled mode";
+      return UseSharedSpaces ? "compiled mode, sharing (UWP build)"    : "compiled mode (UWP build)";
   };
   ShouldNotReachHere();
   return "";
@@ -194,7 +194,7 @@ const char* Abstract_VM_Version::jre_release_version() {
 #endif
 
 const char *Abstract_VM_Version::vm_platform_string() {
-  return OS "-" CPU;
+  return OS "-" CPU " for UWP";
 }
 
 const char* Abstract_VM_Version::internal_vm_info_string() {
@@ -218,6 +218,12 @@ const char* Abstract_VM_Version::internal_vm_info_string() {
         #define HOTSPOT_BUILD_COMPILER "MS VC++ 10.0 (VS2010)"
       #elif _MSC_VER == 1700
         #define HOTSPOT_BUILD_COMPILER "MS VC++ 11.0 (VS2012)"
+	  #elif _MSC_VER == 1800
+		#define HOTSPOT_BUILD_COMPILER "MS VC++ 12.0 (VS2013)"
+	  #elif _MSC_VER == 1900
+		#define HOTSPOT_BUILD_COMPILER "MS VC++ 13.0 (VS2015)"
+	  #elif _MSC_VER == 1910
+		#define HOTSPOT_BUILD_COMPILER "MS VC++ 14.0 (VS2017)"
       #else
         #define HOTSPOT_BUILD_COMPILER "unknown MS VC++:" XSTR(_MSC_VER)
       #endif

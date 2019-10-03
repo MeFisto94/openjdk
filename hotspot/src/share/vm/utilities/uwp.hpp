@@ -26,13 +26,15 @@
 #endif
 
 #include <windows.h>
-#include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
+#include "winapi_headers.h"
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
 #pragma warning(disable: 4005)
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 	// Defines the Bitmask to grab all file attributes out of the flags. ENCRYPTED is the highest available flag and
 	// since a flag is (1 << x), ((1 << x) - 1) == (1 << x - 1 ) | (1 << x - 2) | .... 1;
@@ -181,7 +183,9 @@ extern "C" {
 	inline int __cdecl _getpid() {
 		return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
 	}
+#ifdef __cplusplus
 }
+#endif
 
 
 #define CreateFile UWP_CreateFileA

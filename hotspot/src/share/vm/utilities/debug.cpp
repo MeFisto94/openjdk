@@ -68,23 +68,23 @@
 #  ifdef _DEBUG
    // NOTE: don't turn the lines below into a comment -- if you're getting
    // a compile error here, change the settings to define ASSERT
-   ASSERT should be defined when _DEBUG is defined.  It is not intended to be used for debugging
+   /*ASSERT should be defined when _DEBUG is defined.  It is not intended to be used for debugging
    functions that do not slow down the system too much and thus can be left in optimized code.
-   On the other hand, the code should not be included in a production version.
+   On the other hand, the code should not be included in a production version.*/
 #  endif // _DEBUG
 #endif // ASSERT
 
 
 #ifdef _DEBUG
 #  ifndef ASSERT
-     configuration error: ASSERT must be defined in debug version
+     //configuration error: ASSERT must be defined in debug version
 #  endif // ASSERT
 #endif // _DEBUG
 
 
 #ifdef PRODUCT
 #  if -defined _DEBUG || -defined ASSERT
-     configuration error: ASSERT et al. must not be defined in PRODUCT version
+     //configuration error: ASSERT et al. must not be defined in PRODUCT version
 #  endif
 #endif // PRODUCT
 

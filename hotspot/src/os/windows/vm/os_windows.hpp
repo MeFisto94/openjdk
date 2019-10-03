@@ -31,7 +31,7 @@
 #endif
 
 //#include "../../../share/vm/utilities/uwp.hpp" // Should be the same as jdk's winapi_stub.h Maybe we just reference it from here
-#include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
+#include "utilities/winapi_headers.h"
 #include <WinSock2.h>
 
 // Information about the protection of the page at address '0' on this os.

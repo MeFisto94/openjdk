@@ -26,28 +26,28 @@
 #define OS_WINDOWS_VM_DECIDER_WINDOWS_HPP
 
 #include "utilities/decoder.hpp"
-#include "../../../../../jdk/src/windows/native/common/winapi_headers.h"
+#include "utilities/winapi_headers.h"
 #include <windows.h>
-#include <imagehlp.h>
+//#include <imagehlp.h>
 
 // functions needed for decoding symbols
-typedef DWORD (WINAPI *pfn_SymSetOptions)(DWORD);
-typedef BOOL  (WINAPI *pfn_SymInitialize)(HANDLE, PCTSTR, BOOL);
-typedef BOOL  (WINAPI *pfn_SymGetSymFromAddr64)(HANDLE, DWORD64, PDWORD64, PIMAGEHLP_SYMBOL64);
-typedef DWORD (WINAPI *pfn_UndecorateSymbolName)(const char*, char*, DWORD, DWORD);
-typedef BOOL  (WINAPI *pfn_SymSetSearchPath)(HANDLE, PCTSTR);
-typedef BOOL  (WINAPI *pfn_SymGetSearchPath)(HANDLE, PTSTR, int);
+typedef DWORD(WINAPI *pfn_SymSetOptions)(DWORD);
+typedef BOOL(WINAPI *pfn_SymInitialize)(HANDLE, PCTSTR, BOOL);
+typedef BOOL(WINAPI *pfn_SymGetSymFromAddr64)(HANDLE, DWORD64, PDWORD64, void*); // bypassed PIMAGEHLP_SYMBOL64
+typedef DWORD(WINAPI *pfn_UndecorateSymbolName)(const char*, char*, DWORD, DWORD);
+typedef BOOL(WINAPI *pfn_SymSetSearchPath)(HANDLE, PCTSTR);
+typedef BOOL(WINAPI *pfn_SymGetSearchPath)(HANDLE, PTSTR, int);
 
 #ifdef AMD64
 typedef BOOL  (WINAPI *pfn_StackWalk64)(DWORD MachineType,
                                         HANDLE hProcess,
                                         HANDLE hThread,
-                                        LPSTACKFRAME64 StackFrame,
+                                        /*LPSTACKFRAME64*/void *StackFrame,
                                         PVOID ContextRecord,
-                                        PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
-                                        PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-                                        PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-                                        PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
+                                        /*PREAD_PROCESS_MEMORY_ROUTINE64 */void *ReadMemoryRoutine,
+                                        /*PFUNCTION_TABLE_ACCESS_ROUTINE64 */void *FunctionTableAccessRoutine,
+                                        /*PGET_MODULE_BASE_ROUTINE64*/void *GetModuleBaseRoutine,
+                                        /* PTRANSLATE_ADDRESS_ROUTINE64*/void *TranslateAddress);
 typedef PVOID (WINAPI *pfn_SymFunctionTableAccess64)(HANDLE hProcess, DWORD64 AddrBase);
 typedef DWORD64 (WINAPI *pfn_SymGetModuleBase64)(HANDLE hProcess, DWORD64 dwAddr);
 #endif
@@ -91,12 +91,12 @@ public:
   static BOOL StackWalk64(DWORD MachineType,
                           HANDLE hProcess,
                           HANDLE hThread,
-                          LPSTACKFRAME64 StackFrame,
+                          /*LPSTACKFRAME64*/void *StackFrame,
                           PVOID ContextRecord,
-                          PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
-                          PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-                          PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-                          PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
+                          /*PREAD_PROCESS_MEMORY_ROUTINE64*/void *ReadMemoryRoutine,
+                          /*PFUNCTION_TABLE_ACCESS_ROUTINE64*/void *FunctionTableAccessRoutine,
+                          /*PGET_MODULE_BASE_ROUTINE64*/void *GetModuleBaseRoutine,
+                          /*PTRANSLATE_ADDRESS_ROUTINE64*/void *TranslateAddress);
   static PVOID SymFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 
   static pfn_SymFunctionTableAccess64 pfnSymFunctionTableAccess64();

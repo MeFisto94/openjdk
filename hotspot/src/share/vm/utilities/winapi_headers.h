@@ -260,6 +260,7 @@
 		#define KDHELP KDHELP64
 		#define PKDHELP PKDHELP64
 	#else
+	#error
 	typedef struct _KDHELP {
 
 		//
