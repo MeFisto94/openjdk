@@ -193,6 +193,7 @@ LIB_SETUP_STATIC_LINK_LIBSTDCPP
 #PLATFORM_WINMD = /AI"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x86\store\references"
 PLATFORM_WINMD='/AI"E:\Programme\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.10.25017\lib\x86\store\references"'
 AC_SUBST(PLATFORM_WINMD)
+AC_ARG_VAR(PLATFORM_WINMD, "The compiler instruction to find the platform.winmd file")
 
 ###############################################################################
 #
