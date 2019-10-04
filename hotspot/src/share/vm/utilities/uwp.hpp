@@ -118,11 +118,12 @@ extern "C" {
 		return UWP_MapViewOfFile(hFileMappingObject, dwDesiredAccess, dwFileOffsetHigh, dwFileOffsetLow, dwNumberOfBytesToMap);
 	}
 
+	/* It seems that this has gotten part of WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 	BOOL inline UWP_CreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles,
 		DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation) {
 		// There are ways of launching things on UWP but you cannot launch Win32 Apps, you can only launch by URL/File, so launching a png launches the image viewer.
 		return false;
-	}
+	}*/
 
 	HMODULE inline UWP_GetModuleHandleA(LPCSTR lpLibFileName) {
 		size_t len = strlen(lpLibFileName);
@@ -199,7 +200,7 @@ extern "C" {
 #define MapViewOfFileEx UWP_MapViewOfFileEx
 #define MapViewOfFile UWP_MapViewOfFile
 #define GetModuleHandle UWP_GetModuleHandleA
-#define CreateProcess UWP_CreateProcessA
+//#define CreateProcess UWP_CreateProcessA
 #define RtlAddFunctionTable UWP_RtlAddFunctionTable
 #define DebugBreak UWP_DebugBreak
 #define GetVersionExW UWP_GetVersionExW
