@@ -39,7 +39,7 @@ and VirtualAllocFromApp requires Win10 */
 	#define _WIN32_WINNT 0x0A00
 #endif
 
-#include <WinSock2.h>
+//#include <WinSock2.h>
 #include <windows.h>
 
 #if _MSC_VER <= 1200

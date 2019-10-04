@@ -23,12 +23,12 @@
  */
 
 #ifndef OS_WINDOWS_VM_DECODER_WINDOWS_HPP
-#define OS_WINDOWS_VM_DECIDER_WINDOWS_HPP
+#define OS_WINDOWS_VM_DECODER_WINDOWS_HPP
 
+#include "winapi_headers.h"
+#include "utilities/uwp.hpp"
 #include "utilities/decoder.hpp"
-#include "utilities/winapi_headers.h"
 #include <windows.h>
-//#include <imagehlp.h>
 
 // functions needed for decoding symbols
 typedef DWORD(WINAPI *pfn_SymSetOptions)(DWORD);
@@ -91,12 +91,12 @@ public:
   static BOOL StackWalk64(DWORD MachineType,
                           HANDLE hProcess,
                           HANDLE hThread,
-                          /*LPSTACKFRAME64*/void *StackFrame,
+                          LPSTACKFRAME64 StackFrame,
                           PVOID ContextRecord,
-                          /*PREAD_PROCESS_MEMORY_ROUTINE64*/void *ReadMemoryRoutine,
-                          /*PFUNCTION_TABLE_ACCESS_ROUTINE64*/void *FunctionTableAccessRoutine,
-                          /*PGET_MODULE_BASE_ROUTINE64*/void *GetModuleBaseRoutine,
-                          /*PTRANSLATE_ADDRESS_ROUTINE64*/void *TranslateAddress);
+                          PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
+                          PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
+                          PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
+                          PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
   static PVOID SymFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 
   static pfn_SymFunctionTableAccess64 pfnSymFunctionTableAccess64();

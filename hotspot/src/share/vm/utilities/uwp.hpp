@@ -119,7 +119,7 @@ extern "C" {
 	}
 
 	/* It seems that this has gotten part of WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
-	BOOL inline UWP_CreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles,
+	/*BOOL inline UWP_CreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles,
 		DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation) {
 		// There are ways of launching things on UWP but you cannot launch Win32 Apps, you can only launch by URL/File, so launching a png launches the image viewer.
 		return false;

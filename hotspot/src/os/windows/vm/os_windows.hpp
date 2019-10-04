@@ -30,9 +30,8 @@
 	#define _WIN32_WINNT 0x0A00 // Win 10
 #endif
 
-//#include "../../../share/vm/utilities/uwp.hpp" // Should be the same as jdk's winapi_stub.h Maybe we just reference it from here
 #include "utilities/winapi_headers.h"
-#include <WinSock2.h>
+#include "utilities/uwp.hpp"
 
 // Information about the protection of the page at address '0' on this os.
 static bool zero_page_read_protected() { return true; }
