@@ -22,6 +22,11 @@
  *
  */
 
+/*
+ * You have to see this class in the environment it is. "os.hpp" includes it within
+   class os' public fields.
+*/
+
 #ifndef OS_WINDOWS_VM_OS_WINDOWS_HPP
 #define OS_WINDOWS_VM_OS_WINDOWS_HPP
 // Win32_OS defines the interface to windows operating systems
@@ -31,7 +36,6 @@
 #endif
 
 #include "utilities/winapi_headers.h"
-#include "utilities/uwp.hpp"
 
 // Information about the protection of the page at address '0' on this os.
 static bool zero_page_read_protected() { return true; }
