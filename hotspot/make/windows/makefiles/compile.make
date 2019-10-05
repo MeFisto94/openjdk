@@ -255,9 +255,10 @@ SAFESEH_FLAG = /SAFESEH
 LD_FLAGS = $(SAFESEH_FLAG) $(LD_FLAGS)
 !endif
 
-# We should use WINAPI_FAMILY_APP instead of WINAPI_FAMILY_DESKTOP_APP, but then we can't use the appropriate structs in our stub winAPI methods and we would have to
-# rewrite stuff to add structs and/or remove much more code
-CXX_FLAGS = $(CXX_FLAGS) -DWINAPI_FAMILY=WINAPI_FAMILY_APP -D_CRT_BUILD_DESKTOP_APP=0 -showIncludes -DUWP=true $(MP_FLAG)
+# WINAPI_FAMILY prevents us from accidentially including non-uwp stuff, but the structs need to be pulled out and redefined.
+# UWP=true is for our code which #ifdef's UWP. 
+# To debug "symbol not defined" issues: -showIncludes
+CXX_FLAGS = $(CXX_FLAGS) -DWINAPI_FAMILY=WINAPI_FAMILY_PC_APP -D_CRT_BUILD_DESKTOP_APP=0 -DUWP=true $(MP_FLAG)
 
 # If NO_OPTIMIZATIONS is defined in the environment, turn everything off
 !ifdef NO_OPTIMIZATIONS
