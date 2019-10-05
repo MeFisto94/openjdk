@@ -126,7 +126,8 @@ CXX_INCLUDE_DIRS=$(CXX_INCLUDE_DIRS) \
 
 CXX_DONT_USE_PCH=/D DONT_USE_PRECOMPILED_HEADER
 
-!if "$(USE_PRECOMPILED_HEADER)" != "0"
+# NOTE: configure either sends in "1" or "", so adopt to that.
+!if "$(USE_PRECOMPILED_HEADER)" == "1"
 CXX_USE_PCH=/Fp"vm.pch" /Yu"precompiled.hpp"
 !if "$(COMPILER_NAME)" == "VS2012"
 # VS2012 requires this object file to be listed:
@@ -390,9 +391,13 @@ bytecodeInterpreterWithChecks.obj: ..\generated\jvmtifiles\bytecodeInterpreterWi
 
 default::
 
+!if "$(USE_PRECOMPILED_HEADER)" == "1"
 _build_pch_file.obj:
+		echo $(USE_PRECOMPILED_HEADER)
+		echo $(CXX_USE_PCH)
         @echo #include "precompiled.hpp" > ../generated/_build_pch_file.cpp
         $(CXX) $(CXX_FLAGS) $(GX_OPTION) $(PLATFORM_WINMD) /Fp"vm.pch" /Yc"precompiled.hpp" /c ../generated/_build_pch_file.cpp
+!endif
 
 !if "$(BUILD_WIN_SA)" != "1"
 BUILD_VM_DEF_FLAG=-nosa

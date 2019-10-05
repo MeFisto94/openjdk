@@ -46,7 +46,6 @@ Mutex*            Decoder::_shared_decoder_lock = new Mutex(Mutex::native,
                                 "SharedDecoderLock");
 
 AbstractDecoder* Decoder::get_shared_instance() {
-	assert(LPSTACKFRAME64, "yuus");
   assert(_shared_decoder_lock != NULL && _shared_decoder_lock->owned_by_self(),
     "Require DecoderLock to enter");
 
