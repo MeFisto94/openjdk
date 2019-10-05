@@ -441,9 +441,6 @@ typedef struct _tagSTACKFRAME {
 // LmCons.h
 #define UNLEN 256
 
-// winnt.h
-//typedef void *PSID;
-
 typedef enum _MINIDUMP_TYPE {
 	MiniDumpNormal = 0x00000000,
 	MiniDumpWithDataSegs = 0x00000001,

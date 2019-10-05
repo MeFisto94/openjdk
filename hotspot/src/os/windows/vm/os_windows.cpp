@@ -35,10 +35,10 @@
 	#define UWP true
 #endif
 
-#include <winsock2.h> // winsock2 has to be included before windows.h is included, because it would pull in winsock(1).h
 #include "utilities/winapi_headers.h"
-#include "runtime/os.hpp"
 #include "utilities/uwp.hpp"
+#include <winsock2.h> // winsock2 has to be included before windows.h is included, because it would pull in winsock(1).h
+#include "runtime/os.hpp"
 
 // no precompiled headers
 #include "classfile/classLoader.hpp"

@@ -25,8 +25,8 @@
 	#define _WIN32_WINNT 0x0A00 // Win 10
 #endif
 
-#include <windows.h>
 #include "winapi_headers.h"
+#include <windows.h>
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
@@ -36,7 +36,6 @@
 extern "C" {
 #endif
 	
-
 	// Defines the Bitmask to grab all file attributes out of the flags. ENCRYPTED is the highest available flag and
 	// since a flag is (1 << x), ((1 << x) - 1) == (1 << x - 1 ) | (1 << x - 2) | .... 1;
 	// so we select everything smaller or equal to ENCRYPTED
@@ -186,7 +185,7 @@ extern "C" {
 		return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
 	}
 
-	inline BOOL UWP_EqualSid(PSID pSid1, PSID pSid2) {
+	inline BOOL UWP_EqualSid(PISID pSid1, PISID pSid2) {
 		if (pSid1->Revision != pSid2->Revision) {
 			return false;
 		}
@@ -195,8 +194,10 @@ extern "C" {
 			return false;
 		}
 
-		if (pSid1->IdentifierAuthority != pSid2->IdentifierAuthority) {
-			return false;
+		for (BYTE i = 0; i < 6; i++) {
+			if (pSid1->IdentifierAuthority.Value[i] != pSid2->IdentifierAuthority.Value[i]) {
+				return false;
+			}
 		}
 
 		for (BYTE i = 0; i < pSid1->SubAuthorityCount; i++) {
