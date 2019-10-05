@@ -39,6 +39,7 @@
 # include <setjmp.h>
 #endif
 #ifdef TARGET_OS_FAMILY_windows
+#include <WinSock2.h>
 # include "jvm_windows.h"
 #endif
 #ifdef TARGET_OS_FAMILY_aix

@@ -68,6 +68,8 @@ int NativeCallStack::frames() const {
   return index;
 }
 
+// Disable warning as this is only for a hash function and even downcasted into int.
+#pragma warning(disable: 4311 4302)
 // Hash code. Any better algorithm?
 int NativeCallStack::hash() const {
   long hash_val = _hash_value;

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <windows.h>
 
-#define WSADESCRIPTION_LEN      256
+/*#define WSADESCRIPTION_LEN      256
 #define WSASYS_STATUS_LEN       128
 
 typedef struct WSAData {
@@ -47,7 +47,7 @@ typedef struct WSAData {
 	unsigned short          iMaxUdpDg;
 	char FAR *              lpVendorInfo;
 #endif
-} WSADATA, FAR * LPWSADATA;
+} WSADATA, FAR * LPWSADATA;*/
 
 // TlHelp32.h
 #define MAX_MODULE_NAME32 255
@@ -98,10 +98,23 @@ typedef struct tagVS_FIXEDFILEINFO
 	#endif
 #endif
 
-	//
-	// options that are set/returned by SymSetOptions() & SymGetOptions()
-	// these are used as a mask
-	//
+//
+// symbol data structure
+//
+
+typedef struct _IMAGEHLP_SYMBOL64 {
+	DWORD   SizeOfStruct;           // set to sizeof(IMAGEHLP_SYMBOL64)
+	DWORD64 Address;                // virtual address including dll base address
+	DWORD   Size;                   // estimated size of symbol, can be zero
+	DWORD   Flags;                  // info about the symbols, see the SYMF defines
+	DWORD   MaxNameLength;          // maximum size of symbol name in 'Name'
+	CHAR    Name[1];                // symbol name (null terminated string)
+} IMAGEHLP_SYMBOL64, *PIMAGEHLP_SYMBOL64;
+
+//
+// options that are set/returned by SymSetOptions() & SymGetOptions()
+// these are used as a mask
+//
 #define SYMOPT_CASE_INSENSITIVE          0x00000001
 #define SYMOPT_UNDNAME                   0x00000002
 #define SYMOPT_DEFERRED_LOADS            0x00000004
@@ -347,11 +360,6 @@ __inline
 }
 #endif
 
-#if !defined(_IMAGEHLP_SOURCE_) && defined(_IMAGEHLP64)
-	#define STACKFRAME STACKFRAME64
-	#define LPSTACKFRAME LPSTACKFRAME64
-#endif
-
 typedef struct _tagSTACKFRAME64 {
 	ADDRESS64   AddrPC;               // program counter
 	ADDRESS64   AddrReturn;           // return address
@@ -366,14 +374,75 @@ typedef struct _tagSTACKFRAME64 {
 	KDHELP64    KdHelp;
 } STACKFRAME64, *LPSTACKFRAME64;
 
-typedef struct _IMAGEHLP_SYMBOL64 {
-	DWORD   SizeOfStruct;           // set to sizeof(IMAGEHLP_SYMBOL64)
-	DWORD64 Address;                // virtual address including dll base address
-	DWORD   Size;                   // estimated size of symbol, can be zero
-	DWORD   Flags;                  // info about the symbols, see the SYMF defines
-	DWORD   MaxNameLength;          // maximum size of symbol name in 'Name'
-	CHAR    Name[1];                // symbol name (null terminated string)
-} IMAGEHLP_SYMBOL64, *PIMAGEHLP_SYMBOL64;
+#define INLINE_FRAME_CONTEXT_INIT   0
+#define INLINE_FRAME_CONTEXT_IGNORE 0xFFFFFFFF
+
+typedef struct _tagSTACKFRAME_EX {
+	// First, STACKFRAME64 structure
+	ADDRESS64   AddrPC;            // program counter
+	ADDRESS64   AddrReturn;        // return address
+	ADDRESS64   AddrFrame;         // frame pointer
+	ADDRESS64   AddrStack;         // stack pointer
+	ADDRESS64   AddrBStore;        // backing store pointer
+	PVOID       FuncTableEntry;    // pointer to pdata/fpo or NULL
+	DWORD64     Params[4];         // possible arguments to the function
+	BOOL        Far;               // WOW far call
+	BOOL        Virtual;           // is this a virtual frame?
+	DWORD64     Reserved[3];
+	KDHELP64    KdHelp;
+
+	// Extended STACKFRAME fields
+	DWORD       StackFrameSize;
+	DWORD       InlineFrameContext;
+} STACKFRAME_EX, *LPSTACKFRAME_EX;
+
+#if !defined(_IMAGEHLP_SOURCE_) && defined(_IMAGEHLP64)
+#define STACKFRAME STACKFRAME64
+#define LPSTACKFRAME LPSTACKFRAME64
+#else
+typedef struct _tagSTACKFRAME {
+	ADDRESS     AddrPC;               // program counter
+	ADDRESS     AddrReturn;           // return address
+	ADDRESS     AddrFrame;            // frame pointer
+	ADDRESS     AddrStack;            // stack pointer
+	PVOID       FuncTableEntry;       // pointer to pdata/fpo or NULL
+	DWORD       Params[4];            // possible arguments to the function
+	BOOL        Far;                  // WOW far call
+	BOOL        Virtual;              // is this a virtual frame?
+	DWORD       Reserved[3];
+	KDHELP      KdHelp;
+	ADDRESS     AddrBStore;           // backing store pointer
+} STACKFRAME, *LPSTACKFRAME;
+#endif
+
+//
+// UnDecorateSymbolName Flags
+//
+
+#define UNDNAME_COMPLETE                 (0x0000)  // Enable full undecoration
+#define UNDNAME_NO_LEADING_UNDERSCORES   (0x0001)  // Remove leading underscores from MS extended keywords
+#define UNDNAME_NO_MS_KEYWORDS           (0x0002)  // Disable expansion of MS extended keywords
+#define UNDNAME_NO_FUNCTION_RETURNS      (0x0004)  // Disable expansion of return type for primary declaration
+#define UNDNAME_NO_ALLOCATION_MODEL      (0x0008)  // Disable expansion of the declaration model
+#define UNDNAME_NO_ALLOCATION_LANGUAGE   (0x0010)  // Disable expansion of the declaration language specifier
+#define UNDNAME_NO_MS_THISTYPE           (0x0020)  // NYI Disable expansion of MS keywords on the 'this' type for primary declaration
+#define UNDNAME_NO_CV_THISTYPE           (0x0040)  // NYI Disable expansion of CV modifiers on the 'this' type for primary declaration
+#define UNDNAME_NO_THISTYPE              (0x0060)  // Disable all modifiers on the 'this' type
+#define UNDNAME_NO_ACCESS_SPECIFIERS     (0x0080)  // Disable expansion of access specifiers for members
+#define UNDNAME_NO_THROW_SIGNATURES      (0x0100)  // Disable expansion of 'throw-signatures' for functions and pointers to functions
+#define UNDNAME_NO_MEMBER_TYPE           (0x0200)  // Disable expansion of 'static' or 'virtual'ness of members
+#define UNDNAME_NO_RETURN_UDT_MODEL      (0x0400)  // Disable expansion of MS model for UDT returns
+#define UNDNAME_32_BIT_DECODE            (0x0800)  // Undecorate 32-bit decorated names
+#define UNDNAME_NAME_ONLY                (0x1000)  // Crack only the name for primary declaration;
+																									//  return just [scope::]name.  Does expand template params
+#define UNDNAME_NO_ARGUMENTS             (0x2000)  // Don't undecorate arguments to function
+#define UNDNAME_NO_SPECIAL_SYMS          (0x4000)  // Don't undecorate special names (v-table, vcall, vector xxx, metatype, etc)
+
+// LmCons.h
+#define UNLEN 256
+
+// winnt.h
+//typedef void *PSID;
 
 typedef enum _MINIDUMP_TYPE {
 	MiniDumpNormal = 0x00000000,

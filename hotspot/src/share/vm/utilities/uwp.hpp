@@ -26,6 +26,7 @@
 #endif
 
 #include <windows.h>
+#include "winapi_headers.h"
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
@@ -34,8 +35,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-	#include "winapi_headers.h"
+	
 
 	// Defines the Bitmask to grab all file attributes out of the flags. ENCRYPTED is the highest available flag and
 	// since a flag is (1 << x), ((1 << x) - 1) == (1 << x - 1 ) | (1 << x - 2) | .... 1;
@@ -186,6 +186,32 @@ extern "C" {
 		return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
 	}
 
+	inline BOOL UWP_EqualSid(PSID pSid1, PSID pSid2) {
+		if (pSid1->Revision != pSid2->Revision) {
+			return false;
+		}
+
+		if (pSid1->SubAuthorityCount != pSid2->SubAuthorityCount) {
+			return false;
+		}
+
+		if (pSid1->IdentifierAuthority != pSid2->IdentifierAuthority) {
+			return false;
+		}
+
+		for (BYTE i = 0; i < pSid1->SubAuthorityCount; i++) {
+			if (pSid1->SubAuthority[i] != pSid2->SubAuthority[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	#ifdef __cplusplus
+	}
+	#endif
 
 #define CreateFile UWP_CreateFileA
 #define GetEnvironmentVariable UWP_GetEnvironmentVariableA
@@ -203,9 +229,6 @@ extern "C" {
 #define DebugBreak UWP_DebugBreak
 #define GetVersionExW UWP_GetVersionExW
 #define GetStdHandle UWP_GetStdHandle
-
-#ifdef __cplusplus
-}
-#endif
+#define EqualSid UWP_EqualSid
 
 #endif // SHARE_VM_UTILITIES_UWP_HPP

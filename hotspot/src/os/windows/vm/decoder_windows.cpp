@@ -22,6 +22,7 @@
  *
  */
 
+#include "utilities/winapi_headers.h"
 #include "precompiled.hpp"
 #include "prims/jvm.h"
 #include "runtime/arguments.hpp"

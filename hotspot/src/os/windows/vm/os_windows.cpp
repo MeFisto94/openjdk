@@ -35,8 +35,10 @@
 	#define UWP true
 #endif
 
-//#include <winsock2.h> // winsock2 has to be included before windows.h is included, because it would pull in winsock(1).h
+#include <winsock2.h> // winsock2 has to be included before windows.h is included, because it would pull in winsock(1).h
+#include "utilities/winapi_headers.h"
 #include "runtime/os.hpp"
+#include "utilities/uwp.hpp"
 
 // no precompiled headers
 #include "classfile/classLoader.hpp"
@@ -1006,9 +1008,10 @@ void os::shutdown() {
   }
 }
 
-
+#ifndef UWP
 static BOOL  (WINAPI *_MiniDumpWriteDump)  ( HANDLE, DWORD, HANDLE, MINIDUMP_TYPE, PMINIDUMP_EXCEPTION_INFORMATION,
                                             PMINIDUMP_USER_STREAM_INFORMATION, PMINIDUMP_CALLBACK_INFORMATION);
+#endif
 
 void os::check_or_create_dump(void* exceptionRecord, void* contextRecord, char* buffer, size_t bufferSize) {
 #ifdef UWP
