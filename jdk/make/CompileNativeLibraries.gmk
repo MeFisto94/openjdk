@@ -45,6 +45,9 @@ include Tools.gmk
 CFLAGS_JDKLIB += $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" -I$(JDK_OUTPUTDIR)/gensrc_headers
 CXXFLAGS_JDKLIB += $(PLATFORM_WINMD) /AI"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.15063.0" -I$(JDK_OUTPUTDIR)/gensrc_headers
 
+CFLAGS_JDKLIB += -DWINAPI_FAMILY=WINAPI_FAMILY_PC_APP -D_CRT_BUILD_DESKTOP_APP=0 -DUWP=true
+CXXFLAGS_JDKLIB += -DWINAPI_FAMILY=WINAPI_FAMILY_PC_APP -D_CRT_BUILD_DESKTOP_APP=0 -DUWP=true
+
 # Put the libraries here. Different locations for different target apis.
 ifeq ($(OPENJDK_TARGET_OS_API), posix)
   INSTALL_LIBRARIES_HERE := $(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)
