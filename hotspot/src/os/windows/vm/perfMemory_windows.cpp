@@ -272,11 +272,12 @@ static char* get_user_name() {
    * increase in footprint of 100K.
    */
   char* user = getenv("USERNAME");
-  char buf[UNLEN+1];
-  DWORD buflen = sizeof(buf);
+  
   if (user == NULL || strlen(user) == 0) {
-	  // advdapi32.dll cannot be used (it provides GetUserName), but getenv will also fail.
+	// advdapi32.dll cannot be used (it provides GetUserName), but getenv will also fail.
     /*if (GetUserName(buf, &buflen)) {
+	char buf[UNLEN+1];
+	DWORD buflen = sizeof(buf);
       user = buf;
     }
     else {
