@@ -26,7 +26,6 @@
 #endif
 
 #include <windows.h>
-#include "winapi_headers.h"
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
@@ -36,13 +35,15 @@
 extern "C" {
 #endif
 
+	#include "winapi_headers.h"
+
 	// Defines the Bitmask to grab all file attributes out of the flags. ENCRYPTED is the highest available flag and
 	// since a flag is (1 << x), ((1 << x) - 1) == (1 << x - 1 ) | (1 << x - 2) | .... 1;
 	// so we select everything smaller or equal to ENCRYPTED
-#define FILE_ATTRIBUTES FILE_ATTRIBUTE_ENCRYPTED  | (FILE_ATTRIBUTE_ENCRYPTED - 1)
-#define FILE_FLAGS !FILE_ATTRIBUTES
+	#define FILE_ATTRIBUTES FILE_ATTRIBUTE_ENCRYPTED  | (FILE_ATTRIBUTE_ENCRYPTED - 1)
+	#define FILE_FLAGS !FILE_ATTRIBUTES
 
-//#define CreateFileA(A, B, C, D, E, F, G) 
+	//#define CreateFileA(A, B, C, D, E, F, G) 
 	HANDLE inline UWP_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDispotion, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) {
 		_CREATEFILE2_EXTENDED_PARAMETERS *memPtr = (_CREATEFILE2_EXTENDED_PARAMETERS*)malloc(sizeof(_CREATEFILE2_EXTENDED_PARAMETERS));
 		memPtr->lpSecurityAttributes = lpSecurityAttributes;
@@ -184,9 +185,6 @@ extern "C" {
 	inline int __cdecl _getpid() {
 		return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
 	}
-#ifdef __cplusplus
-}
-#endif
 
 
 #define CreateFile UWP_CreateFileA
@@ -205,5 +203,9 @@ extern "C" {
 #define DebugBreak UWP_DebugBreak
 #define GetVersionExW UWP_GetVersionExW
 #define GetStdHandle UWP_GetStdHandle
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SHARE_VM_UTILITIES_UWP_HPP
