@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <windows.h>
+#include <verrsrc.h>
 
 /*#define WSADESCRIPTION_LEN      256
 #define WSASYS_STATUS_LEN       128
@@ -423,7 +424,7 @@ typedef struct _tagSTACKFRAME {
 // LmCons.h
 #define UNLEN 256
 
-typedef enum _MINIDUMP_TYPE {
+/*typedef enum _MINIDUMP_TYPE {
 	MiniDumpNormal = 0x00000000,
 	MiniDumpWithDataSegs = 0x00000001,
 	MiniDumpWithFullMemory = 0x00000002,
@@ -619,5 +620,6 @@ typedef struct _MINIDUMP_CALLBACK_INFORMATION {
 	MINIDUMP_CALLBACK_ROUTINE CallbackRoutine;
 	PVOID CallbackParam;
 } MINIDUMP_CALLBACK_INFORMATION, *PMINIDUMP_CALLBACK_INFORMATION;
+*/
 
 #endif // WINAPI_HEADERS_H
