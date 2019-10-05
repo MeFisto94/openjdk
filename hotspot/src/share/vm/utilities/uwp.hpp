@@ -185,23 +185,26 @@ extern "C" {
 		return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
 	}
 
-	inline BOOL UWP_EqualSid(PISID pSid1, PISID pSid2) {
-		if (pSid1->Revision != pSid2->Revision) {
+	inline BOOL UWP_EqualSid(PSID pSid1, PSID pSid2) {
+		PISID piSid1 = (PISID)pSid1;
+		PISID piSid2 = (PISID)pSid2;
+
+		if (piSid1->Revision != piSid2->Revision) {
 			return false;
 		}
 
-		if (pSid1->SubAuthorityCount != pSid2->SubAuthorityCount) {
+		if (piSid1->SubAuthorityCount != piSid2->SubAuthorityCount) {
 			return false;
 		}
 
 		for (BYTE i = 0; i < 6; i++) {
-			if (pSid1->IdentifierAuthority.Value[i] != pSid2->IdentifierAuthority.Value[i]) {
+			if (piSid1->IdentifierAuthority.Value[i] != piSid2->IdentifierAuthority.Value[i]) {
 				return false;
 			}
 		}
 
-		for (BYTE i = 0; i < pSid1->SubAuthorityCount; i++) {
-			if (pSid1->SubAuthority[i] != pSid2->SubAuthority[i]) {
+		for (BYTE i = 0; i < piSid1->SubAuthorityCount; i++) {
+			if (piSid1->SubAuthority[i] != piSid2->SubAuthority[i]) {
 				return false;
 			}
 		}
