@@ -318,4 +318,8 @@
 		CHAR    Name[1];                // symbol name (null terminated string)
 	} IMAGEHLP_SYMBOL64, *PIMAGEHLP_SYMBOL64;
 
+	#define HANDLE_FLAG_INHERIT             0x00000001
+	#define HANDLE_FLAG_PROTECT_FROM_CLOSE  0x00000002
+
+
 #endif // WINAPI_HEADERS_H

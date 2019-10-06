@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include "winapi_headers.h"
+#include "../../../share/native/common/jni_util.h"
 
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
@@ -154,17 +155,23 @@ inline int __cdecl _getpid() {
 
 inline LPSTR UWP_CharNextExA(WORD CodePage, LPCSTR lpCurrentChar, DWORD dwFlags) {
 	if (dwFlags != 0) {
-		return nullptr;
+		return NULL;
 	}
 
 	//@TODO: CodePage??
 
 	if (lpCurrentChar == '\0') {
-		return lpCurrentChar;
+		return (LPSTR)lpCurrentChar;
 	}
 	else {
-		return lpCurrentChar + 1;
+		return (LPSTR)lpCurrentChar + 1;
 	}
+}
+
+inline void ThrowUnsupportedOpEx(JNIEnv *env, const char* reason) {
+	/*jclass ex = env->FindClass("java/lang/UnsupportedOperationException");
+	env->ThrowNew(ex, reason);*/
+	JNU_ThrowByName(env, "java/lang/UnsupportedOperationException", reason);
 }
 
 #define CreateFile UWP_CreateFileA
