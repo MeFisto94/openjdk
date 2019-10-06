@@ -152,6 +152,21 @@ inline int __cdecl _getpid() {
 	return GetCurrentProcessId(); // For some reason _getpid isn't supported, GetCurrentProcessId is though
 }
 
+inline LPSTR UWP_CharNextExA(WORD CodePage, LPCSTR lpCurrentChar, DWORD dwFlags) {
+	if (dwFlags != 0) {
+		return nullptr;
+	}
+
+	//@TODO: CodePage??
+
+	if (lpCurrentChar == '\0') {
+		return lpCurrentChar;
+	}
+	else {
+		return lpCurrentChar + 1;
+	}
+}
+
 #define CreateFile UWP_CreateFileA
 #define CreateFileW UWP_CreateFileW
 /*
@@ -168,5 +183,6 @@ inline int __cdecl _getpid() {
 /*#define CreateProcess UWP_CreateProcessA
 #define RtlAddFunctionTable UWP_RtlAddFunctionTable*/
 #define GetStdHandle UWP_GetStdHandle
+#define CharNextExA UWP_CharNextExA
 
 #endif // WINAPI_STUB_H
