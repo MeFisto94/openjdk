@@ -40,6 +40,8 @@
 #define JNU_ReleaseStringPlatformChars(env, x, y) env->ReleaseStringChars(x, reinterpret_cast<const jchar*>(y))
 #endif // DEBUG
 
+#include "../../common/winapi_stub.h"
+#include <shtypes.h>
 #include <windows.h>
 #include <shlobj.h>
 #include <shellapi.h>
@@ -64,6 +66,7 @@ DEFINE_SHLGUID(IID_IExtractIconW,       0x000214FAL, 0, 0);
 
 //#include <sun_awt_shell_Win32ShellFolder2.h>
 
+#ifndef UWP
 // Shell Functions
 typedef BOOL (WINAPI *DestroyIconType)(HICON);
 typedef HINSTANCE (WINAPI *FindExecutableType)(LPCTSTR,LPCTSTR,LPTSTR);
@@ -106,10 +109,11 @@ static IShellFolder* pDesktop;
 #ifndef IS_WINVISTA
 #define IS_WINVISTA (!(::GetVersion() & 0x80000000) && LOBYTE(LOWORD(::GetVersion())) >= 6)
 #endif
-
+#endif
 
 extern "C" {
 
+#ifndef UWP
 static BOOL initShellProcs()
 {
     static HMODULE libShell32 = NULL;
@@ -187,6 +191,8 @@ static BOOL initShellProcs()
     return TRUE;
 }
 
+#endif // !UWP
+
 // To call real JNU_NewStringPlatform
 #undef JNU_NewStringPlatform
 static jstring jstringFromSTRRET(JNIEnv* env, LPITEMIDLIST pidl, STRRET* pStrret) {
@@ -214,6 +220,9 @@ static jstring jstringFromSTRRET(JNIEnv* env, LPITEMIDLIST pidl, STRRET* pStrret
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initIDs
     (JNIEnv* env, jclass cls)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	#else
     if (!initShellProcs()) {
         JNU_ThrowInternalError(env, "Could not initialize shell library");
         return;
@@ -228,6 +237,7 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initIDs
     CHECK_NULL(FID_displayName);
     FID_folderType = env->GetFieldID(cls, "folderType", "Ljava/lang/String;");
     CHECK_NULL(FID_folderType);
+	#endif
 }
 
 
@@ -239,12 +249,16 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initIDs
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolderManager2_initializeCom
         (JNIEnv* env, jclass cls)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	#else
     HRESULT hr = ::CoInitialize(NULL);
     if (FAILED(hr)) {
         char c[64];
         sprintf(c, "Could not initialize COM: HRESULT=0x%08X", hr);
         JNU_ThrowInternalError(env, c);
     }
+	#endif
 }
 
 /*
@@ -255,9 +269,12 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolderManager2_initializeCom
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolderManager2_uninitializeCom
         (JNIEnv* env, jclass cls)
 {
+	#ifndef UWP
     ::CoUninitialize();
+	#endif
 }
 
+#ifndef UWP
 static IShellIcon* getIShellIcon(IShellFolder* pIShellFolder) {
     // http://msdn.microsoft.com/library/en-us/shellcc/platform/Shell/programmersguide/shell_int/shell_int_programming/std_ifaces.asp
     HRESULT hres;
@@ -270,6 +287,7 @@ static IShellIcon* getIShellIcon(IShellFolder* pIShellFolder) {
     }
     return (IShellIcon*)NULL;
 }
+#endif
 
 
 /*
@@ -280,7 +298,12 @@ static IShellIcon* getIShellIcon(IShellFolder* pIShellFolder) {
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIShellIcon
     (JNIEnv* env, jclass cls, jlong parentIShellFolder)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     return (jlong)getIShellIcon((IShellFolder*)parentIShellFolder);
+#endif
 }
 
 
@@ -292,6 +315,9 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIShellIcon
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initDesktop
     (JNIEnv* env, jobject desktop)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	#else
     // Get desktop IShellFolder
     HRESULT res = fn_SHGetDesktopFolder(&pDesktop);
     if (res != S_OK) {
@@ -310,6 +336,7 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initDesktop
     }
     // Set field ID for relative PIDL
     env->CallVoidMethod(desktop, MID_relativePIDL, (jlong)relPIDL);
+	#endif
 }
 
 /*
@@ -320,6 +347,9 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initDesktop
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initSpecial
     (JNIEnv* env, jobject folder, jlong desktopIShellFolder, jint folderType)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	#else
     // Get desktop IShellFolder interface
     IShellFolder* pDesktop = (IShellFolder*)desktopIShellFolder;
     if (pDesktop == NULL) {
@@ -347,6 +377,7 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initSpecial
     }
     // Set field ID for pIShellFolder
     env->CallVoidMethod(folder, MID_pIShellFolder, (jlong)pFolder);
+	#endif
 }
 
 
@@ -358,6 +389,10 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_initSpecial
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getNextPIDLEntry
     (JNIEnv* env, jclass cls, jlong jpIDL)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+		return 0L;
+	#else
     LPITEMIDLIST pIDL = (LPITEMIDLIST)jpIDL;
 
     // Check for valid pIDL.
@@ -376,6 +411,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getNextPIDLEntry
 
     // Return NULL if it is null-terminating, or a pidl otherwise.
     return (pIDL->mkid.cb == 0) ? 0 : (jlong)pIDL;
+	#endif
 }
 
 
@@ -387,6 +423,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getNextPIDLEntry
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_copyFirstPIDLEntry
     (JNIEnv* env, jclass cls, jlong jpIDL)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+		return 0L;
+	#else
     LPITEMIDLIST pIDL = (LPITEMIDLIST)jpIDL;
     if (pIDL == NULL) {
         return 0;
@@ -412,6 +452,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_copyFirstPIDLEntry
     nextPIDL->mkid.cb = 0;
 
     return (jlong)newPIDL;
+	#endif
 }
 
 static int pidlLength(LPITEMIDLIST pIDL) {
@@ -432,6 +473,10 @@ static int pidlLength(LPITEMIDLIST pIDL) {
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_combinePIDLs
     (JNIEnv* env, jclass cls, jlong jppIDL, jlong jpIDL)
 {
+	#ifdef UWP
+		ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+		return 0L;
+	#else
     // Combine an absolute (fully qualified) pidl in a parent with the relative
     // pidl of a child object to create a new absolute pidl for the child.
 
@@ -451,6 +496,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_combinePIDLs
     nullTerminator->mkid.cb = 0;
 
     return (jlong) newPIDL;
+	#endif
 }
 
 
@@ -462,9 +508,13 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_combinePIDLs
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_releasePIDL
     (JNIEnv* env, jclass cls, jlong pIDL)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+#else
     if (pIDL != 0L) {
         pMalloc->Free((LPITEMIDLIST)pIDL);
-    }
+	}
+#endif
 }
 
 
@@ -476,9 +526,13 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_releasePIDL
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_releaseIShellFolder
     (JNIEnv* env, jclass cls, jlong pIShellFolder)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+#else
     if (pIShellFolder != 0L) {
         ((IShellFolder*)pIShellFolder)->Release();
     }
+#endif
 }
 
 
@@ -490,11 +544,16 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_releaseIShellFolder
 JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_compareIDs
     (JNIEnv* env, jclass cls, jlong jpParentIShellFolder, jlong pIDL1, jlong pIDL2)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0;
+#else
     IShellFolder* pParentIShellFolder = (IShellFolder*)jpParentIShellFolder;
     if (pParentIShellFolder == NULL) {
         return 0;
     }
     return pParentIShellFolder->CompareIDs(0, (LPCITEMIDLIST) pIDL1, (LPCITEMIDLIST) pIDL2);
+#endif
 }
 
 
@@ -506,6 +565,10 @@ JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_compareIDs
 JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_getAttributes0
     (JNIEnv* env, jclass cls, jlong jpParentIShellFolder, jlong jpIDL, jint attrsMask)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0;
+#else
     IShellFolder* pParentIShellFolder = (IShellFolder*)jpParentIShellFolder;
     if (pParentIShellFolder == NULL) {
         return 0;
@@ -517,6 +580,7 @@ JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_getAttributes0
     ULONG attrs = attrsMask;
     HRESULT res = pParentIShellFolder->GetAttributesOf(1, &pIDL, &attrs);
     return attrs;
+#endif
 }
 
 
@@ -528,6 +592,10 @@ JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_getAttributes0
 JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getFileSystemPath0
     (JNIEnv* env, jclass cls, jint csidl)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     LPITEMIDLIST relPIDL;
     TCHAR szBuf[MAX_PATH];
     HRESULT res = fn_SHGetSpecialFolderLocation(NULL, csidl, &relPIDL);
@@ -540,6 +608,7 @@ JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getFileSystemPath
     } else {
         return NULL;
     }
+#endif
 }
 
 /*
@@ -551,6 +620,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getEnumObjects
     (JNIEnv* env, jobject folder, jlong pIShellFolder,
      jboolean isDesktop, jboolean includeHiddenFiles)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     IShellFolder* pFolder = (IShellFolder*)pIShellFolder;
     if (pFolder == NULL) {
         return 0;
@@ -569,6 +642,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getEnumObjects
         return 0;
     }
     return (jlong)pEnum;
+#endif
 }
 
 /*
@@ -579,6 +653,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getEnumObjects
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getNextChild
     (JNIEnv* env, jobject folder, jlong pEnumObjects)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     IEnumIDList* pEnum = (IEnumIDList*)pEnumObjects;
     if (pEnum == NULL) {
         return 0;
@@ -588,6 +666,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getNextChild
         return 0;
     }
     return (jlong)pidl;
+#endif
 }
 
 /*
@@ -598,11 +677,15 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getNextChild
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_releaseEnumObjects
     (JNIEnv* env, jobject folder, jlong pEnumObjects)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+#else
     IEnumIDList* pEnum = (IEnumIDList*)pEnumObjects;
     if (pEnum == NULL) {
         return;
     }
     pEnum->Release();
+#endif
 }
 
 /*
@@ -613,6 +696,10 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_releaseEnumObjects
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_bindToObject
     (JNIEnv* env, jclass cls, jlong parentIShellFolder, jlong relativePIDL)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     IShellFolder* pParent = (IShellFolder*)parentIShellFolder;
     if (pParent == NULL) {
         return 0;
@@ -627,6 +714,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_bindToObject
         return (jlong)pFolder;
     }
     return 0;
+#endif
 }
 
 
@@ -638,6 +726,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_bindToObject
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getLinkLocation
     (JNIEnv* env, jclass cls, jlong parentIShellFolder, jlong relativePIDL, jboolean resolve)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     HRESULT hres;
     STRRET strret;
     OLECHAR olePath[MAX_PATH]; // wide-char version of path name
@@ -706,6 +798,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getLinkLocation
     } else {
         return 0;
     }
+#endif
 }
 
 
@@ -717,7 +810,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getLinkLocation
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_parseDisplayName0
     (JNIEnv* env, jclass cls, jlong jpIShellFolder, jstring jname)
 {
-
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     // Get desktop IShellFolder interface
     IShellFolder* pIShellFolder = (IShellFolder*)jpIShellFolder;
     if (pIShellFolder == NULL) {
@@ -741,6 +837,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_parseDisplayName0
     delete[] wszPath;
     env->ReleaseStringChars(jname, strPath);
     return (jlong)pIDL;
+#endif
 }
 
 
@@ -752,6 +849,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_parseDisplayName0
 JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getDisplayNameOf
     (JNIEnv* env, jclass cls, jlong parentIShellFolder, jlong relativePIDL, jint attrs)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     IShellFolder* pParent = (IShellFolder*)parentIShellFolder;
     if (pParent == NULL) {
         return NULL;
@@ -769,6 +870,7 @@ JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getDisplayNameOf
         CoTaskMemFree(strret.pOleStr);
     }
     return result;
+#endif
 }
 
 /*
@@ -779,12 +881,17 @@ JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getDisplayNameOf
 JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getFolderType
     (JNIEnv* env, jclass cls, jlong pIDL)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     SHFILEINFO fileInfo;
     if (fn_SHGetFileInfo((LPCTSTR)pIDL, 0L, &fileInfo, sizeof(fileInfo),
         SHGFI_TYPENAME | SHGFI_PIDL) == 0) {
         return NULL;
     }
     return JNU_NewStringPlatform(env, fileInfo.szTypeName);
+#endif
 }
 
 /*
@@ -795,6 +902,10 @@ JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getFolderType
 JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getExecutableType
     (JNIEnv* env, jobject folder, jstring path)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     TCHAR szBuf[MAX_PATH];
     LPCTSTR szPath = JNU_GetStringPlatformChars(env, path, NULL);
     if (szPath == NULL) {
@@ -806,6 +917,7 @@ JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getExecutableType
         return NULL;
     }
     return JNU_NewStringPlatform(env, szBuf);
+#endif
 }
 
 
@@ -817,6 +929,10 @@ JNIEXPORT jstring JNICALL Java_sun_awt_shell_Win32ShellFolder2_getExecutableType
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIcon
     (JNIEnv* env, jclass cls, jstring absolutePath, jboolean getLargeIcon)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     HICON hIcon = NULL;
     SHFILEINFO fileInfo;
     LPCTSTR pathStr = JNU_GetStringPlatformChars(env, absolutePath, NULL);
@@ -827,6 +943,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIcon
     }
     JNU_ReleaseStringPlatformChars(env, absolutePath, pathStr);
     return (jlong)hIcon;
+#endif
 }
 
 /*
@@ -837,6 +954,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIcon
 JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconIndex
     (JNIEnv* env, jclass cls, jlong pIShellIconL, jlong relativePIDL)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0;
+#else
     IShellIcon* pIShellIcon = (IShellIcon*)pIShellIconL;
     LPITEMIDLIST pidl = (LPITEMIDLIST)relativePIDL;
     if (pIShellIcon == NULL && pidl == NULL) {
@@ -852,6 +973,7 @@ JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconIndex
     }
 
     return (jint)index;
+#endif
 }
 
 
@@ -863,6 +985,10 @@ JNIEXPORT jint JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconIndex
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_extractIcon
     (JNIEnv* env, jclass cls, jlong pIShellFolderL, jlong relativePIDL, jboolean getLargeIcon)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     IShellFolder* pIShellFolder = (IShellFolder*)pIShellFolderL;
     LPITEMIDLIST pidl = (LPITEMIDLIST)relativePIDL;
     if (pIShellFolder == NULL || pidl == NULL) {
@@ -895,6 +1021,7 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_extractIcon
         pIcon->Release();
     }
     return (jlong)hIcon;
+#endif
 }
 
 
@@ -906,7 +1033,11 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_extractIcon
 JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_disposeIcon
     (JNIEnv* env, jclass cls, jlong hicon)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+#else
     fn_DestroyIcon((HICON)hicon);
+#endif
 }
 
 /*
@@ -917,6 +1048,10 @@ JNIEXPORT void JNICALL Java_sun_awt_shell_Win32ShellFolder2_disposeIcon
 JNIEXPORT jintArray JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconBits
     (JNIEnv* env, jclass cls, jlong hicon, jint iconSize)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     jintArray iconBits = NULL;
 
     // Get the icon info
@@ -978,6 +1113,7 @@ JNIEXPORT jintArray JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconBits
         ::DeleteObject(iconInfo.hbmMask);
     }
     return iconBits;
+#endif
 }
 
 /*
@@ -988,6 +1124,10 @@ JNIEXPORT jintArray JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconBits
 JNIEXPORT jintArray JNICALL Java_sun_awt_shell_Win32ShellFolder2_getStandardViewButton0
     (JNIEnv* env, jclass cls, jint iconIndex)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     jintArray result = NULL;
 
     // Create a toolbar
@@ -1016,6 +1156,7 @@ JNIEXPORT jintArray JNICALL Java_sun_awt_shell_Win32ShellFolder2_getStandardView
     }
 
     return result;
+#endif
 }
 
 /*
@@ -1026,7 +1167,12 @@ JNIEXPORT jintArray JNICALL Java_sun_awt_shell_Win32ShellFolder2_getStandardView
 JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getSystemIcon
     (JNIEnv* env, jclass cls, jint iconID)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     return (jlong)LoadIcon(NULL, MAKEINTRESOURCE(iconID));
+#endif
 }
 
 
@@ -1039,6 +1185,10 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconResource
     (JNIEnv* env, jclass cls, jstring libName, jint iconID,
      jint cxDesired, jint cyDesired, jboolean useVGAColors)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0L;
+#else
     const char *pLibName = env->GetStringUTFChars(libName, NULL);
     JNU_CHECK_EXCEPTION_RETURN(env, 0);
     HINSTANCE libHandle = (HINSTANCE)JDK_LoadSystemLibrary(pLibName);
@@ -1048,7 +1198,8 @@ JNIEXPORT jlong JNICALL Java_sun_awt_shell_Win32ShellFolder2_getIconResource
                                       IMAGE_ICON, cxDesired, cyDesired,
                                       fuLoad));
     }
-    return 0;
+	return 0;
+#endif
 }
 
 
@@ -1059,6 +1210,10 @@ static jobject CreateColumnInfo(JNIEnv *pEnv,
                                 jclass *pClass, jmethodID *pConstructor,
                                 SHELLDETAILS *psd, ULONG visible)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(pEnv, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     jstring str = jstringFromSTRRET(pEnv, NULL, &(psd->str));
     JNU_CHECK_EXCEPTION_RETURN(pEnv, NULL);
 
@@ -1066,6 +1221,7 @@ static jobject CreateColumnInfo(JNIEnv *pEnv,
                     str,
                     (jint)(psd->cxChar * 6), // TODO: is 6 OK for converting chars to pixels?
                     (jint)psd->fmt, (jboolean) visible);
+#endif
 }
 
 
@@ -1078,7 +1234,10 @@ JNIEXPORT jobjectArray JNICALL
     Java_sun_awt_shell_Win32ShellFolder2_doGetColumnInfo
             (JNIEnv *env, jobject obj, jlong iShellFolder)
 {
-
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     HRESULT hr;
     IShellFolder *pIShellFolder = (IShellFolder*) iShellFolder;
     IUnknown *pIUnknown = NULL;
@@ -1190,7 +1349,7 @@ JNIEXPORT jobjectArray JNICALL
 
     // The folder exposes neither IShellFolder2 nor IShelDetails
     return NULL;
-
+#endif
 }
 
 /*
@@ -1203,7 +1362,10 @@ JNIEXPORT jobject JNICALL
             (JNIEnv *env, jobject obj, jlong iShellFolder,
             jlong jpidl, jint columnIdx)
 {
-
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return NULL;
+#else
     HRESULT hr;
     IShellFolder *pIShellFolder = (IShellFolder*) iShellFolder;
     IUnknown *pIUnknown = NULL;
@@ -1238,6 +1400,7 @@ JNIEXPORT jobject JNICALL
 
     // The folder exposes neither IShellFolder2 nor IShelDetails
     return NULL;
+#endif
 }
 
 /*
@@ -1250,6 +1413,10 @@ JNIEXPORT jint JNICALL
             (JNIEnv* env, jclass cls, jlong jpParentIShellFolder,
             jlong pIDL1, jlong pIDL2, jint columnIdx)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "Win32ShellFolderManager2 is not supported on UWP");
+	return 0;
+#else
     IShellFolder* pParentIShellFolder = (IShellFolder*)jpParentIShellFolder;
     if (pParentIShellFolder == NULL) {
         return 0;
@@ -1264,6 +1431,7 @@ JNIEXPORT jint JNICALL
     }
 
     return 0;
+#endif
 }
 
 
