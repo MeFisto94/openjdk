@@ -22,13 +22,13 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+#include "../../../common/winapi_stub.h"
 #include <windows.h>
-#include <Sddl.h>
+#include <sddl.h>
 #include <string.h>
 
 #include "jni.h"
 #include "jni_util.h"
-
 #include "sun_tools_attach_WindowsVirtualMachine.h"
 
 
@@ -380,6 +380,9 @@ JNIEXPORT void JNICALL Java_sun_tools_attach_WindowsVirtualMachine_enqueue
   (JNIEnv *env, jclass cls, jlong handle, jbyteArray stub, jstring cmd,
    jstring pipename, jobjectArray args)
 {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "This operation is not supported on UWP as the required APIs aren't available");
+#else
     DataBlock data;
     DataBlock* pData;
     DWORD* pCode;
@@ -506,6 +509,7 @@ JNIEXPORT void JNICALL Java_sun_tools_attach_WindowsVirtualMachine_enqueue
 
     VirtualFreeEx(hProcess, pCode, 0, MEM_RELEASE);
     VirtualFreeEx(hProcess, pData, 0, MEM_RELEASE);
+#endif
 }
 
 /*

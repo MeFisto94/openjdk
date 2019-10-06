@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../common/winapi_stub.h"
 #include <windows.h>
 #include <stdio.h>
 
@@ -35,7 +36,7 @@
 
 JNIEXPORT jstring JNICALL Java_sun_awt_Win32FontManager_getFontPath(JNIEnv *env, jobject thiz, jboolean noType1)
 {
-    char windir[BSIZE];
+    
     char sysdir[BSIZE];
     char fontpath[BSIZE*2];
     char *end;
@@ -51,7 +52,10 @@ JNIEXPORT jstring JNICALL Java_sun_awt_Win32FontManager_getFontPath(JNIEnv *env,
         *end = 0;
          strcat(sysdir, "\\Fonts");
     }
+	strcpy(fontpath, sysdir);
 
+	#ifndef UWP
+	char windir[BSIZE];
     GetWindowsDirectory(windir, BSIZE);
     if (strlen(windir) > BSIZE-7) {
         *windir = 0;
@@ -59,12 +63,12 @@ JNIEXPORT jstring JNICALL Java_sun_awt_Win32FontManager_getFontPath(JNIEnv *env,
         strcat(windir, "\\Fonts");
     }
 
-    strcpy(fontpath,sysdir);
-    if (stricmp(sysdir,windir)) {
-        strcat(fontpath,";");
-        strcat(fontpath,windir);
-    }
+	if (stricmp(sysdir, windir)) {
+		strcat(fontpath, ";");
+		strcat(fontpath, windir);
+	}
 
+	#endif
     return JNU_NewStringPlatform(env, fontpath);
 }
 
@@ -126,6 +130,14 @@ static const char FONTKEY_NT[] =
 static const char FONTKEY_WIN[] =
     "Software\\Microsoft\\Windows\\CurrentVersion\\Fonts";
 
+
+/* This HDC is initialised and released in the populate family map
+ * JNI entry point, and used within the call which would otherwise
+ * create many DCs.
+ */
+static HDC screenDC = NULL;
+
+#ifndef UWP
 /* Callback for call to EnumFontFamiliesEx in the EnumFamilyNames function.
  * Expects to be called once for each face name in the family specified
  * in the call. We extract the full name for the font which is expected
@@ -188,12 +200,6 @@ static int CALLBACK CheckFontFamilyProcW(
 /*     } */
     return 0;
 }
-
-/* This HDC is initialised and released in the populate family map
- * JNI entry point, and used within the call which would otherwise
- * create many DCs.
- */
-static HDC screenDC = NULL;
 
 static int DifferentFamily(wchar_t *family, wchar_t* fullName) {
     LOGFONTW lfw;
@@ -386,6 +392,7 @@ static int CALLBACK EnumFamilyNamesW(
                         lParam, 0L);
     return 1;
 }
+#endif
 
 
 /* It looks like TrueType fonts have " (TrueType)" tacked on the end of their
@@ -598,15 +605,6 @@ Java_sun_awt_Win32FontManager_populateFontFileNameMap0
     const char cname[MAX_BUFFER];
     const char data[MAX_BUFFER];
 
-    DWORD type;
-    LONG ret;
-    HKEY hkeyFonts;
-    DWORD dwNameSize;
-    DWORD dwDataValueSize;
-    DWORD nval;
-    LPCSTR fontKeyName;
-    DWORD dwNumValues, dwMaxValueNameLen, dwMaxValueDataLen;
-    DWORD numValues = 0;
     jclass classID;
     jmethodID putMID;
     GdiFontMapInfo fmi;
@@ -669,6 +667,18 @@ Java_sun_awt_Win32FontManager_populateFontFileNameMap0
     if (screenDC == NULL) {
         return;
     }
+
+	#ifndef UWP
+	DWORD dwNameSize;
+	DWORD dwDataValueSize;
+	DWORD nval;
+	LPCSTR fontKeyName;
+	DWORD dwNumValues, dwMaxValueNameLen, dwMaxValueDataLen;
+	DWORD numValues = 0;
+	DWORD type;
+	LONG ret;
+	HKEY hkeyFonts;
+
     /* Enumerate fonts via GDI to build maps of fonts and families */
     if (IS_NT) {
         LOGFONTW lfw;
@@ -752,6 +762,7 @@ Java_sun_awt_Win32FontManager_populateFontFileNameMap0
         }
     }
     RegCloseKey(hkeyFonts);
+	#endif
     ReleaseDC(NULL, screenDC);
     screenDC = NULL;
 }

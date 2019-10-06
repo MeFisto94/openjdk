@@ -22,6 +22,8 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+
+#include "../../native/common/winapi_stub.h"
 #include <windows.h>
 #include <winsock2.h>
 

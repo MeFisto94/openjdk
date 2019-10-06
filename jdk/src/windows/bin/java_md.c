@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../native/common/winapi_stub.h"
 #include <windows.h>
 #include <io.h>
 #include <process.h>
@@ -435,6 +436,10 @@ GetApplicationHome(char *buf, jint bufsize)
 static jboolean
 GetStringFromRegistry(HKEY key, const char *name, char *buf, jint bufsize)
 {
+	// Actually for UWP there is no need to look for a public JRE etc..
+#ifdef UWP
+	return JNI_FALSE;
+#else
     DWORD type, size;
 
     if (RegQueryValueEx(key, name, 0, &type, 0, &size) == 0
@@ -445,11 +450,15 @@ GetStringFromRegistry(HKEY key, const char *name, char *buf, jint bufsize)
         }
     }
     return JNI_FALSE;
+#endif
 }
 
 static jboolean
 GetPublicJREHome(char *buf, jint bufsize)
 {
+#ifdef UWP
+	return JNI_FALSE;
+#else
     HKEY key, subkey;
     char version[MAXPATHLEN];
 
@@ -507,6 +516,7 @@ GetPublicJREHome(char *buf, jint bufsize)
     RegCloseKey(key);
     RegCloseKey(subkey);
     return JNI_TRUE;
+#endif
 }
 
 /*
@@ -694,6 +704,9 @@ ServerClassMachine() {
  */
 static char *
 ProcessDir(manifest_info* info, HKEY top_key) {
+#ifdef UWP
+	return NULL;
+#else
     DWORD   index = 0;
     HKEY    ver_key;
     char    name[MAXNAMELEN];
@@ -741,6 +754,7 @@ ProcessDir(manifest_info* info, HKEY top_key) {
             RegCloseKey(ver_key);
         return (JLI_StringDup(name));
     }
+#endif
 }
 
 /*
@@ -754,6 +768,9 @@ ProcessDir(manifest_info* info, HKEY top_key) {
  */
 char *
 LocateJRE(manifest_info* info) {
+#ifdef UWP
+	return NULL;
+#else
     HKEY    key = NULL;
     char    *path;
     int     key_index;
@@ -771,6 +788,7 @@ LocateJRE(manifest_info* info) {
             RegCloseKey(key);
     }
     return NULL;
+#endif
 }
 
 /*
@@ -1263,6 +1281,8 @@ jclass FindBootStrapClass(JNIEnv *env, const char *classname)
 void
 InitLauncher(boolean javaw)
 {
+	// There is no real taskbar and noone will launch javaw.exe but embed the stuff.
+	#ifndef UWP
     INITCOMMONCONTROLSEX icx;
 
     /*
@@ -1273,6 +1293,8 @@ InitLauncher(boolean javaw)
     memset(&icx, 0, sizeof(INITCOMMONCONTROLSEX));
     icx.dwSize = sizeof(INITCOMMONCONTROLSEX);
     InitCommonControlsEx(&icx);
+	#endif
+
     _isjavaw = javaw;
     JLI_SetTraceLauncher();
 }

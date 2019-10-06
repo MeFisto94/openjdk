@@ -132,6 +132,9 @@ JNIEXPORT jboolean JNICALL
 Java_sun_tools_attach_WindowsAttachProvider_isLibraryLoadedByProcess(JNIEnv *env, jclass cls,
                                                                      jstring str, jint processId)
 {
+#ifdef UWP
+	return JNI_FALSE;
+#else
     HANDLE hProcess;
     jboolean isCopy;
     const char* lib;
@@ -182,4 +185,5 @@ Java_sun_tools_attach_WindowsAttachProvider_isLibraryLoadedByProcess(JNIEnv *env
     CloseHandle(hProcess);
 
     return result;
+#endif
 }

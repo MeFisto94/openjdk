@@ -30,6 +30,7 @@
 #include "jni.h"
 #include "jni_util.h"
 #include "sun_management_FileSystemImpl.h"
+#include "../../common/winapi_stub.h"
 
 /*
  * Access mask to represent any file access
@@ -121,6 +122,10 @@ static jboolean isSecuritySupported(JNIEnv* env, const char* path) {
  * Returns the security descriptor for a file.
  */
 static SECURITY_DESCRIPTOR* getFileSecurityDescriptor(JNIEnv* env, const char* path) {
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "FileSystemImpl is not supported on UWP");
+	return NULL;
+#else
     SECURITY_DESCRIPTOR* sd;
     DWORD len = 0;
     SECURITY_INFORMATION info =
@@ -142,6 +147,7 @@ static SECURITY_DESCRIPTOR* getFileSecurityDescriptor(JNIEnv* env, const char* p
         }
     }
     return sd;
+#endif
 }
 
 /*

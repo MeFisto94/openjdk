@@ -26,6 +26,7 @@
 #endif
 
 #include <stdlib.h>
+#include <WinSock2.h>
 #include <windows.h>
 #include "winapi_headers.h"
 #include "../../../share/native/common/jni_util.h"
@@ -124,6 +125,8 @@ HANDLE inline UWP_OpenFileMappingA(DWORD dwDesiredAccess, BOOL bInheritHandle, L
 	return res;
 }*/
 	
+// Note: Semantics are a bit different here: We LOAD the Library, where GetModuleHandle usually acts on already load libs.
+// probably LoadPackagedLibrary() caches the results though.
 HMODULE inline UWP_GetModuleHandleA(LPCSTR lpLibFileName) {
 	size_t len = strlen(lpLibFileName);
 	PWSTR buf = (PWSTR)malloc(len + 1);
@@ -168,11 +171,81 @@ inline LPSTR UWP_CharNextExA(WORD CodePage, LPCSTR lpCurrentChar, DWORD dwFlags)
 	}
 }
 
+inline BOOL UWP_EqualSid(PSID pSid1, PSID pSid2) {
+	PISID piSid1 = (PISID)pSid1;
+	PISID piSid2 = (PISID)pSid2;
+
+	if (piSid1->Revision != piSid2->Revision) {
+		return FALSE;
+	}
+
+	if (piSid1->SubAuthorityCount != piSid2->SubAuthorityCount) {
+		return FALSE;
+	}
+
+	for (BYTE i = 0; i < 6; i++) {
+		if (piSid1->IdentifierAuthority.Value[i] != piSid2->IdentifierAuthority.Value[i]) {
+			return FALSE;
+		}
+	}
+
+	for (BYTE i = 0; i < piSid1->SubAuthorityCount; i++) {
+		if (piSid1->SubAuthority[i] != piSid2->SubAuthority[i]) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
 inline void ThrowUnsupportedOpEx(JNIEnv *env, const char* reason) {
 	/*jclass ex = env->FindClass("java/lang/UnsupportedOperationException");
 	env->ThrowNew(ex, reason);*/
 	JNU_ThrowByName(env, "java/lang/UnsupportedOperationException", reason);
 }
+
+/* This is actually a "bigger" Problem here, as WSASendDisconnect has been deprecated (and thus not UWPed) becuase one should use WSASend.
+   Now the behavior is actually a bit different on both in that there even is WSARecvDisconnect, where the other party can handle and get the 
+   disconnect message (but not on TCP/IP anyway, so this is probably irrelevant).
+
+  "Note  The native implementation of TCP/IP on Windows does not support disconnect data. Disconnect data is only supported with Windows Sockets providers
+    that have the XP1_DISCONNECT_DATA flag in their WSAPROTOCOL_INFO structure."
+*/
+inline int WSAAPI UWP_WSASendDisconnect(SOCKET s, LPWSABUF lpOutboundDisconnectData) {
+	return send(s, lpOutboundDisconnectData->buf, lpOutboundDisconnectData->len, 0) + shutdown(s, SD_SEND);
+}
+
+inline int WINAPI UWP_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
+	OutputDebugStringA("[MessageBox]: ");
+	if (lpCaption != NULL) {
+		OutputDebugStringA(lpCaption);
+		OutputDebugStringA(" -- ");
+	}
+	if (lpText != NULL) {
+		OutputDebugStringA(lpText);
+	}
+	OutputDebugStringA("\n");
+
+	return 0;
+}
+
+inline HMODULE UWP_LoadLibraryA(LPCSTR lpLibFileName) {
+	return UWP_GetModuleHandleA(lpLibFileName);
+}
+
+inline HDC UWP_GetDC(HWND hWnd) {
+	return NULL;
+}
+
+
+inline int UWP_ReleaseDC(HWND hWnd, HDC  hDC) {
+	return 0;
+}
+
+inline BOOL UWP_ImpersonateSelf(SECURITY_IMPERSONATION_LEVEL ImpersonationLevel) {
+	return FALSE;
+}
+
 
 #define CreateFile UWP_CreateFileA
 #define CreateFileW UWP_CreateFileW
@@ -191,5 +264,13 @@ inline void ThrowUnsupportedOpEx(JNIEnv *env, const char* reason) {
 #define RtlAddFunctionTable UWP_RtlAddFunctionTable*/
 #define GetStdHandle UWP_GetStdHandle
 #define CharNextExA UWP_CharNextExA
+#define EqualSid UWP_EqualSid
+#define WSASendDisconnect UWP_WSASendDisconnect
+#define MessageBox UWP_MessageBoxA
+#define LoadLibrary UWP_LoadLibraryA
+#define GetDC UWP_GetDC
+#define GetWindowDC UWP_GetDC
+#define ReleaseDC UWP_ReleaseDC
+#define ImpersonateSelf UWP_ImpersonateSelf
 
 #endif // WINAPI_STUB_H

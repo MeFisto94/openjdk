@@ -45,6 +45,7 @@
  * into the glyph which is returned.
  */
 
+#include "../../common/winapi_stub.h"
 #include <stdio.h>
 #include <malloc.h>
 #include <math.h>
@@ -125,6 +126,7 @@ static unsigned char* getIGTable(int gamma) {
 JNIEXPORT jboolean JNICALL
     Java_sun_font_FileFontStrike_initNative(JNIEnv *env, jclass unused) {
 
+#ifndef UWP
     DWORD osVersion = GetVersion();
     DWORD majorVersion = (DWORD)(LOBYTE(LOWORD(osVersion)));
     DWORD minorVersion = (DWORD)(HIBYTE(LOWORD(osVersion)));
@@ -133,6 +135,7 @@ JNIEXPORT jboolean JNICALL
     if (majorVersion < 5 || (majorVersion == 5 && minorVersion < 1)) {
         return JNI_FALSE;
     }
+#endif // UWP is certainly above XP.
 
     memset(igLUTable, 0,  LCDLUTCOUNT);
 
@@ -174,6 +177,10 @@ Java_sun_font_FileFontStrike__1getGlyphImageFromWindows
 (JNIEnv *env, jobject unused,
  jstring fontFamily, jint style, jint size, jint glyphCode, jboolean fm) {
 
+#ifdef UWP
+	ThrowUnsupportedOpEx(env, "This operation is not supported on UWP as the required APIs aren't available");
+	return 0L;
+#else
     GLYPHMETRICS glyphMetrics;
     LOGFONTW lf;
     BITMAPINFO bmi;
@@ -491,4 +498,5 @@ Java_sun_font_FileFontStrike__1getGlyphImageFromWindows
     DeleteObject(tmpBitmap);
 
     return ptr_to_jlong(glyphInfo);
+#endif
 }
