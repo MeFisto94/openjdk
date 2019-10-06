@@ -50,6 +50,11 @@ typedef struct  {
     boolean has_wildcard;
 } StdArg ;
 #endif
+
+#ifdef UWP
+#include "../native/common/winapi_stub.h"
+#endif
+
 static StdArg *stdargs;
 static int    stdargc;
 
