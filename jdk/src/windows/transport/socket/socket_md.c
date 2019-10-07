@@ -213,7 +213,9 @@ int
 dbgsysSocket(int domain, int type, int protocol) {
   int fd = (int)socket(domain, type, protocol);
   if (fd != SOCKET_ERROR) {
+	#ifndef UWP	
       SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, FALSE);
+	#endif
   }
   return fd;
 }
