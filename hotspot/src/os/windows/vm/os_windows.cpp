@@ -3281,7 +3281,11 @@ bool os::pd_commit_memory(char* addr, size_t bytes, bool exec) {
     if (exec) {
       DWORD oldprot;
       // Windows doc says to use VirtualProtect to get execute permissions
-      if (!VirtualProtectFromApp(addr, bytes, PAGE_EXECUTE_READWRITE, &oldprot)) {
+	  // UWP: The following constants generate an error: PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY
+	  // The following constants are allowed only for apps that have the codeGeneration capability :
+	  // PAGE_EXECUTE PAGE_EXECUTE_READ. Historically we had PAGE_EXECUTE_READWRITE:
+
+      if (!VirtualProtectFromApp(addr, bytes, PAGE_EXECUTE_READ, &oldprot)) {
         NOT_PRODUCT(warn_fail_commit_memory(addr, bytes, exec);)
         return false;
       }
@@ -3308,7 +3312,7 @@ bool os::pd_commit_memory(char* addr, size_t bytes, bool exec) {
       if (exec) {
         DWORD oldprot;
         if (!VirtualProtectFromApp(next_alloc_addr, bytes_to_rq,
-                            PAGE_EXECUTE_READWRITE, &oldprot)) {
+                            PAGE_EXECUTE_READ, &oldprot)) {
           NOT_PRODUCT(warn_fail_commit_memory(next_alloc_addr, bytes_to_rq,
                                               exec);)
           return false;
