@@ -23,6 +23,11 @@
  * questions.
  */
 
+#include "../../../common/winapi_stub.h"
+
+// This is Windows XP... It is overriden by winapi_stub, but before I noticed that I had a hard time
+// with lots of compiler errors all being related to unknown structs as it kills all the UWP API
+// in winapi_stub etc...
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
 #endif
@@ -77,8 +82,9 @@ static jfieldID backupResult_bytesTransferred;
 static jfieldID backupResult_context;
 
 
+#ifndef UWP
 /**
- * Win32 APIs not available in Windows XP
+ * Win32 APIs not available in Windows XP (and not in UWP)
  */
 typedef HANDLE (WINAPI* FindFirstStream_Proc)(LPCWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD);
 typedef BOOL (WINAPI* FindNextStream_Proc)(HANDLE, LPVOID);
@@ -91,6 +97,7 @@ static FindNextStream_Proc FindNextStream_func;
 
 static CreateSymbolicLinkProc CreateSymbolicLink_func;
 static GetFinalPathNameByHandleProc GetFinalPathNameByHandle_func;
+#endif
 
 static void throwWindowsException(JNIEnv* env, DWORD lastError) {
     jobject x = JNU_NewObjectByName(env, "sun/nio/fs/WindowsException",
@@ -108,7 +115,6 @@ JNIEXPORT void JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_initIDs(JNIEnv* env, jclass this)
 {
     jclass clazz;
-    HMODULE h;
 
     clazz = (*env)->FindClass(env, "sun/nio/fs/WindowsNativeDispatcher$FirstFile");
     CHECK_NULL(clazz);
@@ -176,6 +182,8 @@ Java_sun_nio_fs_WindowsNativeDispatcher_initIDs(JNIEnv* env, jclass this)
     backupResult_context = (*env)->GetFieldID(env, clazz, "context", "J");
     CHECK_NULL(backupResult_context);
 
+	#ifndef UWP
+	HMODULE h;
     // get handle to kernel32
     if (GetModuleHandleExW((GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
@@ -193,6 +201,7 @@ Java_sun_nio_fs_WindowsNativeDispatcher_initIDs(JNIEnv* env, jclass this)
         GetFinalPathNameByHandle_func =
             (GetFinalPathNameByHandleProc)GetProcAddress(h, "GetFinalPathNameByHandleW");
     }
+	#endif
 }
 
 JNIEXPORT jlong JNICALL
@@ -400,6 +409,7 @@ JNIEXPORT void JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_FindFirstStream0(JNIEnv* env, jclass this,
     jlong address, jobject obj)
 {
+#ifndef UWP
     WIN32_FIND_STREAM_DATA data;
     LPCWSTR lpFileName = jlong_to_ptr(address);
     HANDLE handle;
@@ -423,13 +433,16 @@ Java_sun_nio_fs_WindowsNativeDispatcher_FindFirstStream0(JNIEnv* env, jclass thi
             throwWindowsException(env, GetLastError());
         }
     }
-
+#else
+	ThrowUnsupportedOpEx(env, "FindFirstStream() not supported in UWP!");
+#endif
 }
 
 JNIEXPORT jstring JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_FindNextStream(JNIEnv* env, jclass this,
     jlong handle)
 {
+#ifndef UWP
     WIN32_FIND_STREAM_DATA data;
     HANDLE h = (HANDLE)jlong_to_ptr(handle);
 
@@ -445,6 +458,10 @@ Java_sun_nio_fs_WindowsNativeDispatcher_FindNextStream(JNIEnv* env, jclass this,
             throwWindowsException(env, GetLastError());
         return NULL;
     }
+#else
+	ThrowUnsupportedOpEx(env, "FindNextStream() not supported in UWP!");
+	return NULL;
+#endif
 }
 
 
@@ -646,6 +663,7 @@ JNIEXPORT jstring JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_GetVolumePathName0(JNIEnv* env, jclass this,
     jlong address)
 {
+	#ifndef UWP
     WCHAR volumeName[MAX_PATH+1];
     LPCWSTR lpFileName = jlong_to_ptr(address);
 
@@ -659,6 +677,10 @@ Java_sun_nio_fs_WindowsNativeDispatcher_GetVolumePathName0(JNIEnv* env, jclass t
     } else {
         return (*env)->NewString(env, (const jchar *)volumeName, (jsize)wcslen(volumeName));
     }
+	#else
+	ThrowUnsupportedOpEx(env, "GetVolumePathNameW is not available in UWP!");
+	return NULL;
+	#endif
 }
 
 JNIEXPORT void JNICALL
@@ -831,12 +853,16 @@ JNIEXPORT void JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_AddAccessDeniedAceEx(JNIEnv* env,
     jclass this, jlong aclAddress, jint flags, jint mask, jlong sidAddress)
 {
+	#ifndef UWP
     PACL pAcl = (PACL)jlong_to_ptr(aclAddress);
     PSID pSid = (PSID)jlong_to_ptr(sidAddress);
 
     if (AddAccessDeniedAceEx(pAcl, ACL_REVISION, (DWORD)flags, (DWORD)mask, pSid) == 0) {
         throwWindowsException(env, GetLastError());
     }
+	#else
+	ThrowUnsupportedOpEx(env, "AddAccessDeniedAceEx isn't supported in UWP!");
+	#endif
 }
 
 
@@ -1042,6 +1068,7 @@ Java_sun_nio_fs_WindowsNativeDispatcher_AccessCheck(JNIEnv* env,
     jclass this, jlong token, jlong securityInfo, jint accessMask,
     jint genericRead, jint genericWrite, jint genericExecute, jint genericAll)
 {
+	#ifndef UWP
     HANDLE hImpersonatedToken = (HANDLE)jlong_to_ptr(token);
     PSECURITY_DESCRIPTOR security = (PSECURITY_DESCRIPTOR)jlong_to_ptr(securityInfo);
     DWORD checkAccessRights = (DWORD)accessMask;
@@ -1062,6 +1089,10 @@ Java_sun_nio_fs_WindowsNativeDispatcher_AccessCheck(JNIEnv* env,
         throwWindowsException(env, GetLastError());
 
     return (result == FALSE) ? JNI_FALSE : JNI_TRUE;
+	#else
+	ThrowUnsupportedOpEx(env, "AccessCheck/MapGenericMask is unsupported on UWP!");
+	return JNI_FALSE;
+	#endif
 }
 
 JNIEXPORT jlong JNICALL
@@ -1084,6 +1115,7 @@ JNIEXPORT void JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_CreateSymbolicLink0(JNIEnv* env,
     jclass this, jlong linkAddress, jlong targetAddress, jint flags)
 {
+	#ifndef UWP
     LPCWSTR link = jlong_to_ptr(linkAddress);
     LPCWSTR target = jlong_to_ptr(targetAddress);
 
@@ -1095,17 +1127,24 @@ Java_sun_nio_fs_WindowsNativeDispatcher_CreateSymbolicLink0(JNIEnv* env,
     /* On Windows 64-bit this appears to succeed even when there is insufficient privileges */
     if ((*CreateSymbolicLink_func)(link, target, (DWORD)flags) == 0)
         throwWindowsException(env, GetLastError());
+	#else
+	ThrowUnsupportedOpEx(env, "Creating Symbolic Links is unsupported for UWP (as most Filesystem Actions)");
+	#endif
 }
 
 JNIEXPORT void JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_CreateHardLink0(JNIEnv* env,
     jclass this, jlong newFileAddress, jlong existingFileAddress)
 {
+	#ifndef UWP
     LPCWSTR newFile = jlong_to_ptr(newFileAddress);
     LPCWSTR existingFile = jlong_to_ptr(existingFileAddress);
 
     if (CreateHardLinkW(newFile, existingFile, NULL) == 0)
         throwWindowsException(env, GetLastError());
+	#else
+		ThrowUnsupportedOpEx(env, "Creating Hard Links is unsupported in UWP!");
+	#endif
 }
 
 JNIEXPORT jstring JNICALL
@@ -1149,6 +1188,7 @@ JNIEXPORT jstring JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_GetFinalPathNameByHandle(JNIEnv* env,
     jclass this, jlong handle)
 {
+#ifndef UWP
     jstring rv = NULL;
     WCHAR *lpBuf = NULL;
     WCHAR path[MAX_PATH];
@@ -1183,6 +1223,10 @@ Java_sun_nio_fs_WindowsNativeDispatcher_GetFinalPathNameByHandle(JNIEnv* env,
         throwWindowsException(env, GetLastError());
     }
     return rv;
+#else
+	ThrowUnsupportedOpEx(env, "GetFinalPathNameByHandle is not supported by UWP!");
+	return NULL;
+#endif
 }
 
 JNIEXPORT jlong JNICALL
@@ -1292,6 +1336,7 @@ Java_sun_nio_fs_WindowsNativeDispatcher_BackupRead0(JNIEnv* env, jclass this,
     jlong hFile, jlong bufferAddress, jint bufferSize, jboolean abort,
     jlong context, jobject obj)
 {
+	#ifndef UWP
     BOOL res;
     DWORD bytesTransferred;
     BOOL a = (abort == JNI_TRUE) ? TRUE : FALSE;
@@ -1312,12 +1357,16 @@ Java_sun_nio_fs_WindowsNativeDispatcher_BackupRead0(JNIEnv* env, jclass this,
         (*env)->SetLongField(env, obj, backupResult_context,
             ptr_to_jlong(pContext));
     }
+	#else
+	ThrowUnsupportedOpEx(env, "BackupRead is not supported in UWP!");
+	#endif
 }
 
 JNIEXPORT void JNICALL
 Java_sun_nio_fs_WindowsNativeDispatcher_BackupSeek(JNIEnv* env, jclass this,
     jlong hFile, jlong bytesToSeek, jlong context)
 {
+	#ifndef UWP
     BOOL res;
     jint lowBytesToSeek = (jint)bytesToSeek;
     jint highBytesToSeek = (jint)(bytesToSeek >> 32);
@@ -1333,5 +1382,8 @@ Java_sun_nio_fs_WindowsNativeDispatcher_BackupSeek(JNIEnv* env, jclass this,
                      &pContext);
     if (res == 0) {
         throwWindowsException(env, GetLastError());
-    }
+	}
+#else
+	ThrowUnsupportedOpEx(env, "BackupSeek is not supported in UWP!");
+#endif
 }

@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../common/winapi_stub.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -276,6 +277,7 @@ int NET_GetDefaultTOS() {
         }
     }
 
+	#ifndef UWP //We are past Win 2k anyway
     /*
      * Query the registry to see if a Default ToS has been set.
      * Different registry entry for NT vs 95/98/ME.
@@ -302,6 +304,7 @@ int NET_GetDefaultTOS() {
             default_tos = (int)dwDefaultTOS;
         }
     }
+	#endif
     return default_tos;
 }
 
@@ -1046,7 +1049,9 @@ int NET_Socket (int domain, int type, int protocol) {
     SOCKET sock;
     sock = socket (domain, type, protocol);
     if (sock != INVALID_SOCKET) {
-        SetHandleInformation((HANDLE)(uintptr_t)sock, HANDLE_FLAG_INHERIT, FALSE);
+		#ifndef UWP
+			SetHandleInformation((HANDLE)(uintptr_t)sock, HANDLE_FLAG_INHERIT, FALSE);
+		#endif
     }
     return (int)sock;
 }

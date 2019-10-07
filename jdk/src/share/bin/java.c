@@ -51,6 +51,9 @@
  */
 
 
+#ifdef UWP
+#include "../../windows/native/common/winapi_stub.h"
+#endif
 #include "java.h"
 
 /*
@@ -1324,7 +1327,6 @@ static jclass
 GetApplicationClass(JNIEnv *env)
 {
     jmethodID mid;
-    jobject result;
     jclass cls = GetLauncherHelperClass(env);
     NULL_CHECK0(cls);
     NULL_CHECK0(mid = (*env)->GetStaticMethodID(env, cls,

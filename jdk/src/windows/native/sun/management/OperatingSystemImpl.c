@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../common/winapi_stub.h"
 #include "jni.h"
 #include "jni_util.h"
 #include "jlong.h"
@@ -43,12 +44,14 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifndef UWP
 /* Disable warnings due to broken header files from Microsoft... */
 #pragma warning(push, 3)
 #include <pdh.h>
 #include <pdhmsg.h>
 #include <process.h>
 #pragma warning(pop)
+#endif
 
 typedef unsigned __int32 juint;
 typedef unsigned __int64 julong;
@@ -71,15 +74,18 @@ static jlong jlong_from(jint h, jint l) {
 }
 
 static HANDLE main_process;
-
+#ifndef UWP
 static void perfInit(void);
+#endif
 
 JNIEXPORT void JNICALL
 Java_sun_management_OperatingSystemImpl_initialize
   (JNIEnv *env, jclass cls)
 {
     main_process = GetCurrentProcess();
+	#ifndef UWP
     perfInit();
+	#endif
 }
 
 JNIEXPORT jlong JNICALL
@@ -153,8 +159,8 @@ Java_sun_management_OperatingSystemImpl_getTotalPhysicalMemorySize
     return (jlong) ms.ullTotalPhys;
 }
 
+#ifndef UWP
 /* Performance Data Helper API (PDH) support */
-
 typedef PDH_STATUS (WINAPI *PdhAddCounterFunc)(
                            HQUERY      hQuery,
                            LPCSTR      szFullCounterPath,
@@ -1347,17 +1353,28 @@ perfGetCPULoad(int which) {
     }
     return -1.0;
 }
+#endif
 
 JNIEXPORT jdouble JNICALL
 Java_sun_management_OperatingSystemImpl_getSystemCpuLoad
 (JNIEnv *env, jobject dummy)
 {
+	#ifndef UWP
     return perfGetCPULoad(-1);
+	#else
+	ThrowUnsupportedOpEx(env, "getXXXCpuLoad doesn't work as we have no access to the PDH API");
+	return 0.0;
+	#endif
 }
 
 JNIEXPORT jdouble JNICALL
 Java_sun_management_OperatingSystemImpl_getProcessCpuLoad
 (JNIEnv *env, jobject dummy)
 {
+	#ifndef UWP
     return perfGetProcessCPULoad();
+	#else
+	ThrowUnsupportedOpEx(env, "getXXXCpuLoad doesn't work as we have no access to the PDH API");
+	return 0.0;
+	#endif
 }

@@ -43,6 +43,7 @@ static int getPortRange(struct portrange *range)
     ver.dwOSVersionInfoSize = sizeof(ver);
     GetVersionEx(&ver);
 
+	#ifndef UWP // UWP is > XP anyway.
     /* Check for major version 5 or less = Windows XP/2003 or older */
     if (ver.dwMajorVersion <= 5) {
         LONG ret;
@@ -67,13 +68,16 @@ static int getPortRange(struct portrange *range)
             }
         }
     } else {
+	#endif
         /* There doesn't seem to be an API to access this. "MaxUserPort"
           * is affected, but is not sufficient to determine.
          * so we just use the defaults, which are less likely to change
           */
         range->lower = 49152;
         range->higher = 65535;
-    }
+	#ifndef UWP
+	}
+	#endif
     return 0;
 }
 

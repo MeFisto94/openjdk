@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../../common/winapi_stub.h"
 #include <windows.h>
 #include <winsock2.h>
 #include <ctype.h>

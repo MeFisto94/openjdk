@@ -27,6 +27,7 @@
  * Posix-compatible directory access routines
  */
 
+#include "../../common/winapi_stub.h"
 #include <windows.h>
 #include <direct.h>                    /* For _getdrive() */
 #include <errno.h>

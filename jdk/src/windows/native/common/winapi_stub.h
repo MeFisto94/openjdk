@@ -18,8 +18,8 @@
 *
 */
 
-#ifndef WINAPI_STUB_H
-#define WINAPI_STUB_H
+#ifndef JDK_WINAPI_STUB_H
+#define JDK_WINAPI_STUB_H
 
 #ifndef _WIN32_WINNT
 	#define _WIN32_WINNT 0x0A00 // Win 10
@@ -28,7 +28,11 @@
 #include <stdlib.h>
 #include <WinSock2.h>
 #include <windows.h>
+#include <memoryapi.h>
+#include <AccCtrl.h>
+#include <AclAPI.h>
 #include "winapi_headers.h"
+#include "jni.h"
 #include "../../../share/native/common/jni_util.h"
 
 #pragma warning(disable: 4996)
@@ -63,7 +67,7 @@ HANDLE inline UWP_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dw
 	return res;
 }
 
-HANDLE inline UWP_CreateFileW(LPWSTR wFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDispotion, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) {
+HANDLE inline UWP_CreateFileW(LPCWSTR wFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDispotion, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) {
 	CREATEFILE2_EXTENDED_PARAMETERS *memPtr = (CREATEFILE2_EXTENDED_PARAMETERS*)malloc(sizeof(CREATEFILE2_EXTENDED_PARAMETERS));
 	memPtr->lpSecurityAttributes = lpSecurityAttributes;
 	memPtr->hTemplateFile = hTemplateFile;
@@ -105,7 +109,7 @@ DWORD inline UWP_GetSystemDirectoryA(LPCSTR lpBuffer, DWORD nBufferLength) {
 DWORD inline UWP_GetWindowsDirectoryA(LPCSTR lpBuffer, DWORD nBufferLength) {
 	lpBuffer = "";
 	return NULL;
-}
+}*/
 
 HANDLE inline UWP_CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName) {
 	size_t len = strlen(lpName);
@@ -120,10 +124,32 @@ HANDLE inline UWP_OpenFileMappingA(DWORD dwDesiredAccess, BOOL bInheritHandle, L
 	size_t len = strlen(lpName);
 	PWSTR buf = (PWSTR)malloc(len + 1);
 	mbstowcs(buf, lpName, len);
-	HANDLE res = OpenFileMappingFromApp(dwDesiredAccess, bInheritHandle, (PCWSTR)buf);
+	HANDLE res = OpenFileMappingFromApp((ULONG)dwDesiredAccess, bInheritHandle, (PCWSTR)buf);
 	free((void*)buf);
 	return res;
-}*/
+}
+
+BOOL inline UWP_GetVersionExW(LPOSVERSIONINFOW lpVersionInformation) {
+	// https://www.codeproject.com/Articles/678606/Part-Overcoming-Windows-s-deprecation-of-GetVe would be the solution, but 
+	// so much useless work. Plus we want to state that this code is _not_ running in Windows 10 but rather UWP
+
+	// this is correct, 10.0 instead of 6.4, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832(v=vs.85).aspx
+	lpVersionInformation->dwMajorVersion = 10;
+	lpVersionInformation->dwMinorVersion = 0;
+	lpVersionInformation->dwBuildNumber = 1337;
+	lpVersionInformation->dwPlatformId = VER_PLATFORM_WIN32_NT;
+	memcpy(lpVersionInformation->szCSDVersion, L"Service Pack UWP", 17);
+
+	if (lpVersionInformation->dwOSVersionInfoSize == sizeof(OSVERSIONINFOEX)) {
+		// Want extended information
+		((LPOSVERSIONINFOEXW)lpVersionInformation)->wProductType = VER_NT_WORKSTATION;
+		((LPOSVERSIONINFOEXW)lpVersionInformation)->wServicePackMajor = 0;
+		((LPOSVERSIONINFOEXW)lpVersionInformation)->wServicePackMinor = 0;
+		((LPOSVERSIONINFOEXW)lpVersionInformation)->wSuiteMask = VER_SUITE_PERSONAL | VER_SUITE_TERMINAL | VER_SUITE_SINGLEUSERTS;
+	}
+
+	return TRUE;
+}
 	
 // Note: Semantics are a bit different here: We LOAD the Library, where GetModuleHandle usually acts on already load libs.
 // probably LoadPackagedLibrary() caches the results though.
@@ -205,11 +231,11 @@ inline void ThrowUnsupportedOpEx(JNIEnv *env, const char* reason) {
 }
 
 /* This is actually a "bigger" Problem here, as WSASendDisconnect has been deprecated (and thus not UWPed) becuase one should use WSASend.
-   Now the behavior is actually a bit different on both in that there even is WSARecvDisconnect, where the other party can handle and get the 
-   disconnect message (but not on TCP/IP anyway, so this is probably irrelevant).
-
-  "Note  The native implementation of TCP/IP on Windows does not support disconnect data. Disconnect data is only supported with Windows Sockets providers
-    that have the XP1_DISCONNECT_DATA flag in their WSAPROTOCOL_INFO structure."
+ *  Now the behavior is actually a bit different on both in that there even is WSARecvDisconnect, where the other party can handle and get the 
+ *  disconnect message (but not on TCP/IP anyway, so this is probably irrelevant).
+ *
+ * "Note  The native implementation of TCP/IP on Windows does not support disconnect data. Disconnect data is only supported with Windows Sockets providers
+ *   that have the XP1_DISCONNECT_DATA flag in their WSAPROTOCOL_INFO structure."
 */
 inline int WSAAPI UWP_WSASendDisconnect(SOCKET s, LPWSABUF lpOutboundDisconnectData) {
 	return send(s, lpOutboundDisconnectData->buf, lpOutboundDisconnectData->len, 0) + shutdown(s, SD_SEND);
@@ -238,7 +264,7 @@ inline HDC UWP_GetDC(HWND hWnd) {
 }
 
 
-inline int UWP_ReleaseDC(HWND hWnd, HDC  hDC) {
+inline int UWP_ReleaseDC(HWND hWnd, HDC hDC) {
 	return 0;
 }
 
@@ -246,22 +272,61 @@ inline BOOL UWP_ImpersonateSelf(SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
 	return FALSE;
 }
 
+inline BOOL UWP_GetFileInformationByHandle(HANDLE hFile, LPBY_HANDLE_FILE_INFORMATION lpFileInformation) {
+	FILE_BASIC_INFO basic;
+	FILE_ID_INFO id;
+	FILE_STANDARD_INFO standard;
+
+	BOOL b = GetFileInformationByHandleEx(hFile, FileBasicInfo, &basic, sizeof(FILE_BASIC_INFO));
+	b += GetFileInformationByHandleEx(hFile, FileIdInfo, &id, sizeof(FILE_ID_INFO));
+	b += GetFileInformationByHandleEx(hFile, FileStandardInfo, &standard, sizeof(FILE_STANDARD_INFO));
+
+	lpFileInformation->dwFileAttributes = basic.FileAttributes;
+	lpFileInformation->ftCreationTime.dwLowDateTime = basic.CreationTime.LowPart;
+	lpFileInformation->ftCreationTime.dwHighDateTime = basic.CreationTime.HighPart;
+	lpFileInformation->ftLastAccessTime.dwLowDateTime = basic.LastAccessTime.LowPart;
+	lpFileInformation->ftLastAccessTime.dwHighDateTime = basic.LastAccessTime.HighPart;
+	lpFileInformation->ftLastWriteTime.dwLowDateTime = basic.LastWriteTime.LowPart;
+	lpFileInformation->ftLastWriteTime.dwHighDateTime = basic.LastWriteTime.HighPart;
+	lpFileInformation->dwVolumeSerialNumber = (DWORD)(id.VolumeSerialNumber & 0xFFFFFFFF); // Only take the lower part here as well
+	lpFileInformation->nNumberOfLinks = standard.NumberOfLinks;
+	lpFileInformation->nFileSizeHigh = standard.EndOfFile.HighPart;
+	lpFileInformation->nFileSizeLow = standard.EndOfFile.LowPart;
+
+	// Problem, the real ID is 128 bits but we can only store 64bits in the old API, so we just take the LOWER HALF.
+	// Let's just hope this is LittleEndian.
+	lpFileInformation->nFileIndexHigh = id.FileId.Identifier[7] << 24 | id.FileId.Identifier[6] << 16 | id.FileId.Identifier[5] << 8 | id.FileId.Identifier[4];
+	lpFileInformation->nFileIndexLow  = id.FileId.Identifier[3] << 24 | id.FileId.Identifier[2] << 16 | id.FileId.Identifier[1] << 8 | id.FileId.Identifier[0];
+
+	return b;
+}
+
+inline BOOL UWP_SetFileSecurityW(LPCWSTR lpFileName, SECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR pSecurityDescriptor) {
+	WCHAR *lpFileNameS = malloc(wcslen(lpFileName) + 1);
+	memcpy_s(lpFileNameS, wcslen(lpFileName) + 1, lpFileName, wcslen(lpFileName) + 1);
+
+	PISECURITY_DESCRIPTOR pi = ((PISECURITY_DESCRIPTOR)pSecurityDescriptor);
+	BOOL b = SetNamedSecurityInfoW(lpFileNameS, SE_FILE_OBJECT, SecurityInformation, pi->Owner, pi->Group, pi->Dacl, pi->Sacl);
+	free(lpFileNameS);
+	return b;
+}
+
+inline BOOL UWP_GetFileSecurityW(LPCWSTR lpFileName, SECURITY_INFORMATION RequestedInformation, PSECURITY_DESCRIPTOR pSecurityDescriptor, DWORD nLength, LPDWORD lpnLengthNeeded) {
+	*lpnLengthNeeded = sizeof(SECURITY_DESCRIPTOR);
+	if (nLength <= *lpnLengthNeeded) {
+		SetLastError(ERROR_INSUFFICIENT_BUFFER);
+		return FALSE;
+	}
+
+	return GetNamedSecurityInfoW(lpFileName, SE_FILE_OBJECT, RequestedInformation, NULL, NULL, NULL, NULL, &pSecurityDescriptor);
+}
+
 
 #define CreateFile UWP_CreateFileA
 #define CreateFileW UWP_CreateFileW
-/*
-#define GetEnvironmentVariable UWP_GetEnvironmentVariableA
-#define SetEnvironmentVariable UWP_SetEnvironmentVariableA
-#define GetTempPath UWP_GetTempPathA
-#define GetSystemDirectory UWP_GetSystemDirectoryA
-#define GetWindowsDirectory UWP_GetWindowsDirectoryA
-#define OpenFileMapping UWP_OpenFileMappingA
 #define CreateFileMapping UWP_CreateFileMappingA
-#define MapViewOfFileEx UWP_MapViewOfFileEx
-#define MapViewOfFile UWP_MapViewOfFile*/
+#define OpenFileMapping UWP_OpenFileMappingA
 #define GetModuleHandle UWP_GetModuleHandleA
-/*#define CreateProcess UWP_CreateProcessA
-#define RtlAddFunctionTable UWP_RtlAddFunctionTable*/
 #define GetStdHandle UWP_GetStdHandle
 #define CharNextExA UWP_CharNextExA
 #define EqualSid UWP_EqualSid
@@ -272,5 +337,8 @@ inline BOOL UWP_ImpersonateSelf(SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
 #define GetWindowDC UWP_GetDC
 #define ReleaseDC UWP_ReleaseDC
 #define ImpersonateSelf UWP_ImpersonateSelf
+#define GetFileInformationByHandle UWP_GetFileInformationByHandle
+#define SetFileSecurityW UWP_SetFileSecurityW
+#define GetFileSecurityW UWP_GetFileSecurityW
 
 #endif // WINAPI_STUB_H

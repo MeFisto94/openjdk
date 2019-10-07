@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../common/winapi_stub.h"
 #include <stdlib.h>
 #include <windows.h>
 #include <winsock2.h>           /* needed for htonl */
@@ -108,7 +109,7 @@ MIB_IFROW *getIF(jint index) {
     ULONG size;
     DWORD i, count;
     jint ifindex;
-
+#ifndef UWP
     /*
      * Ask the IP Helper library to enumerate the adapters
      */
@@ -160,6 +161,9 @@ MIB_IFROW *getIF(jint index) {
       free(tableP);
     }
     return ret;
+#else	
+	return NULL;
+#endif
 }
 
 /*
@@ -173,6 +177,7 @@ MIB_IFROW *getIF(jint index) {
  */
 int enumInterfaces(JNIEnv *env, netif **netifPP)
 {
+#ifndef UWP
     MIB_IFTABLE *tableP;
     MIB_IFROW *ifrowP;
     ULONG size;
@@ -357,6 +362,10 @@ int enumInterfaces(JNIEnv *env, netif **netifPP)
     }
     *netifPP = netifP;
     return count;
+#else
+ThrowUnsupportedOpEx(env, "NetworkInterface is not supported on UWP!");
+return -1;
+#endif
 }
 
 /*
@@ -370,6 +379,7 @@ int enumInterfaces(JNIEnv *env, netif **netifPP)
  */
 int enumAddresses_win(JNIEnv *env, netif *netifP, netaddr **netaddrPP)
 {
+#ifndef UWP
     MIB_IPADDRTABLE *tableP;
     ULONG size;
     DWORD ret;
@@ -479,6 +489,10 @@ int enumAddresses_win(JNIEnv *env, netif *netifP, netaddr **netaddrPP)
     *netaddrPP = netaddrP;
     free(tableP);
     return count;
+#else
+ThrowUnsupportedOpEx(env, "NetworkInterface is not supported on UWP!");
+return -1;
+#endif
 }
 
 /*

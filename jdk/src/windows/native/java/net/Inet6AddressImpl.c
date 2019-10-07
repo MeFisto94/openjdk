@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../common/winapi_stub.h"
 #include <windows.h>
 #include <winsock2.h>
 #include <ctype.h>
@@ -32,7 +33,9 @@
 #include <sys/types.h>
 #include <process.h>
 #include <iphlpapi.h>
+#ifndef UWP
 #include <icmpapi.h>
+#endif
 
 #include "java_net_InetAddress.h"
 #include "java_net_Inet4AddressImpl.h"
@@ -443,6 +446,7 @@ ping6(JNIEnv *env,
       jint timeout,
       HANDLE hIcmpFile)
 {
+#ifndef UWP
     DWORD dwRetVal = 0;
     char SendData[32] = {0};
     LPVOID ReplyBuffer = NULL;
@@ -486,6 +490,10 @@ ping6(JNIEnv *env,
     } else {
         return JNI_FALSE;
     }
+#else
+	ThrowUnsupportedOpEx(env, "Ping/ICMP is not supported in UWP!");
+	return JNI_FALSE;
+#endif
 }
 #endif /* AF_INET6 */
 
@@ -552,13 +560,15 @@ Java_java_net_Inet6AddressImpl_isReachable0(JNIEnv *env, jobject this,
       inf6.sin6_scope_id = if_scope;
       netif = &inf6;
     }
-
+#ifndef UWP
     hIcmpFile = Icmp6CreateFile();
     if (hIcmpFile == INVALID_HANDLE_VALUE) {
         int err = WSAGetLastError();
         if (err == ERROR_ACCESS_DENIED) {
             // fall back to TCP echo if access is denied to ICMP
+#endif
             return tcp_ping6(env, timeout, ttl, him6, netif, len);
+#ifndef UWP
         } else {
             NET_ThrowNew(env, err, "Unable to create ICMP file handle");
             return JNI_FALSE;
@@ -566,6 +576,7 @@ Java_java_net_Inet6AddressImpl_isReachable0(JNIEnv *env, jobject this,
     } else {
         return ping6(env, netif, &him6, timeout, hIcmpFile);
     }
+#endif
 
 #endif /* AF_INET6 */
     return JNI_FALSE;

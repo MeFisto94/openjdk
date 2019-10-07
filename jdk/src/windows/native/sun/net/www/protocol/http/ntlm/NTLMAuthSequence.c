@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../../../../../common/winapi_stub.h"
 #include <jni.h>
 #include <windows.h>
 #include <rpc.h>
@@ -41,7 +42,9 @@
 #define SECURITY_WIN32
 #include "sspi.h"
 
+#ifndef UWP
 static void endSequence (PCredHandle credHand, PCtxtHandle ctxHandle, JNIEnv *env, jobject status);
+#endif
 
 static jfieldID ntlm_ctxHandleID;
 static jfieldID ntlm_crdHandleID;
@@ -68,6 +71,7 @@ JNIEXPORT void JNICALL Java_sun_net_www_protocol_http_ntlm_NTLMAuthSequence_init
 JNIEXPORT jlong JNICALL Java_sun_net_www_protocol_http_ntlm_NTLMAuthSequence_getCredentialsHandle
 (JNIEnv *env, jobject this, jstring user, jstring domain, jstring password)
 {
+#ifndef UWP
     SEC_WINNT_AUTH_IDENTITY   AuthId;
     SEC_WINNT_AUTH_IDENTITY * pAuthId;
     const CHAR        *pUser = 0;
@@ -157,6 +161,10 @@ JNIEXPORT jlong JNICALL Java_sun_net_www_protocol_http_ntlm_NTLMAuthSequence_get
     } else {
         return 0;
     }
+#else
+	ThrowUnsupportedOpEx(env, "NTLM Auth is not supported on UWP!");
+	return 0;
+#endif
 }
 
 
@@ -168,7 +176,7 @@ JNIEXPORT jlong JNICALL Java_sun_net_www_protocol_http_ntlm_NTLMAuthSequence_get
 JNIEXPORT jbyteArray JNICALL Java_sun_net_www_protocol_http_ntlm_NTLMAuthSequence_getNextToken
 (JNIEnv *env, jobject this, jlong crdHandle, jbyteArray lastToken, jobject status)
 {
-
+#ifndef UWP
     VOID        *pInput = 0;
     DWORD            inputLen;
     CHAR         buffOut[1024];
@@ -272,8 +280,13 @@ JNIEXPORT jbyteArray JNICALL Java_sun_net_www_protocol_http_ntlm_NTLMAuthSequenc
     }
 
     return result;
+#else
+ThrowUnsupportedOpEx(env, "NTLM Auth is not supported on UWP!");
+return NULL;
+#endif
 }
 
+#ifndef UWP
 static void endSequence (PCredHandle credHand, PCtxtHandle ctxHandle, JNIEnv *env, jobject status) {
     if (credHand != 0) {
         FreeCredentialsHandle(credHand);
@@ -288,3 +301,4 @@ static void endSequence (PCredHandle credHand, PCtxtHandle ctxHandle, JNIEnv *en
     /* Sequence is complete so set flag */
     (*env)->SetBooleanField(env, status, status_seqCompleteID, JNI_TRUE);
 }
+#endif

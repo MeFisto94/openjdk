@@ -27,6 +27,10 @@
  * Support for reading ZIP/JAR files.
  */
 
+#ifdef UWP
+#include "../../../../../windows/native/common/winapi_stub.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>

@@ -23,6 +23,8 @@
  * questions.
  */
 
+#include "../../../windows/native/common/winapi_stub.h"
+
 #include <windows.h>
 #include <errno.h>
 

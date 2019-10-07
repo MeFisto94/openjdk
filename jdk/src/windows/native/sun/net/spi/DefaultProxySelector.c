@@ -55,7 +55,6 @@ static jfieldID ptype_socksID;
  */
 JNIEXPORT jboolean JNICALL
 Java_sun_net_spi_DefaultProxySelector_init(JNIEnv *env, jclass clazz) {
-  HKEY hKey;
   LONG ret;
   jclass cls;
 
@@ -74,6 +73,8 @@ Java_sun_net_spi_DefaultProxySelector_init(JNIEnv *env, jclass clazz) {
   ptype_socksID = (*env)->GetStaticFieldID(env, ptype_class, "SOCKS", "Ljava/net/Proxy$Type;");
   isaddr_createUnresolvedID = (*env)->GetStaticMethodID(env, isaddr_class, "createUnresolved", "(Ljava/lang/String;I)Ljava/net/InetSocketAddress;");
 
+  #ifndef UWP
+  HKEY hKey;
   /**
    * Let's see if we can find the proper Registry entry.
    */
@@ -87,7 +88,7 @@ Java_sun_net_spi_DefaultProxySelector_init(JNIEnv *env, jclass clazz) {
      */
     return JNI_TRUE;
   }
-
+  #endif
   return JNI_FALSE;
 }
 
@@ -104,10 +105,11 @@ Java_sun_net_spi_DefaultProxySelector_getSystemProxy(JNIEnv *env,
                                                      jstring proto,
                                                      jstring host)
 {
+jobject no_proxy = NULL;
+#ifndef UWP
   jobject isa = NULL;
   jobject proxy = NULL;
   jobject type_proxy = NULL;
-  jobject no_proxy = NULL;
   jboolean isCopy;
   HKEY hKey;
   LONG ret;
@@ -266,7 +268,7 @@ Java_sun_net_spi_DefaultProxySelector_getSystemProxy(JNIEnv *env,
       RegCloseKey(hKey);
     }
   }
-
+#endif
 noproxy:
   no_proxy = (*env)->GetStaticObjectField(env, proxy_class, pr_no_proxyID);
   return no_proxy;

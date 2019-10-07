@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../../../../common/winapi_stub.h"
 #include <jni.h>
 #include "com_sun_security_auth_module_NTSystem.h"
 
@@ -31,6 +32,7 @@
 #include <wchar.h>
 #include <ntsecapi.h>
 #include <lmerr.h>
+#include <strsafe.h>
 
 static BOOL debug = FALSE;
 
@@ -615,11 +617,11 @@ BOOL getTextualSid
     }
 
     // Add 'S' prefix and revision number to the string.
-    dwSidSize=wsprintf(TextualSid, TEXT("S-%lu-"), dwSidRev );
+    dwSidSize=StringCbPrintfA(TextualSid, TEXT("S-%lu-"), dwSidRev );
 
     // Add SID identifier authority to the string.
     if ((psia->Value[0] != 0) || (psia->Value[1] != 0)) {
-        dwSidSize+=wsprintf(TextualSid + lstrlen(TextualSid),
+        dwSidSize+=StringCbPrintfA(TextualSid + lstrlen(TextualSid),
                 TEXT("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
                 (USHORT)psia->Value[0],
                 (USHORT)psia->Value[1],
@@ -628,7 +630,7 @@ BOOL getTextualSid
                 (USHORT)psia->Value[4],
                 (USHORT)psia->Value[5]);
     } else {
-        dwSidSize+=wsprintf(TextualSid + lstrlen(TextualSid),
+        dwSidSize+= StringCbPrintfA(TextualSid + lstrlen(TextualSid),
                 TEXT("%lu"),
                 (ULONG)(psia->Value[5]  )   +
                 (ULONG)(psia->Value[4] <<  8)   +
@@ -638,7 +640,7 @@ BOOL getTextualSid
 
     // Add SID subauthorities to the string.
     for (dwCounter=0 ; dwCounter < dwSubAuthorities ; dwCounter++) {
-        dwSidSize+=wsprintf(TextualSid + dwSidSize, TEXT("-%lu"),
+        dwSidSize+= StringCbPrintfA(TextualSid + dwSidSize, TEXT("-%lu"),
                 *GetSidSubAuthority(pSid, dwCounter) );
     }
 
@@ -646,6 +648,7 @@ BOOL getTextualSid
 }
 
 void DisplayErrorText(DWORD dwLastError) {
+#ifndef UWP
     HMODULE hModule = NULL; // default to system source
     LPSTR MessageBuffer;
     DWORD dwBufferLength;
@@ -703,6 +706,9 @@ void DisplayErrorText(DWORD dwLastError) {
     //
     if(hModule != NULL)
         FreeLibrary(hModule);
+#else
+	OutputDebugString("DisplayErrorText");
+#endif
 }
 
 /**

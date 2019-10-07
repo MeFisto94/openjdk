@@ -82,11 +82,14 @@ include lib/NetworkingLibraries.gmk
 
 include lib/NioLibraries.gmk
 
-include lib/SecurityLibraries.gmk
+# Currently Security Libraries are disabled because most of them require extensive OS Support (SmartCards, Kerebos, ...)
+# Also most applications probably ship with 3rd party crypto instead of sun packages
+# include lib/SecurityLibraries.gmk
 
 include lib/ServiceabilityLibraries.gmk
 
-include lib/Awt2dLibraries.gmk
+# Currently AWT is disabled because of the big size and nothing will be supported on UWP anyway (not even regular guis)
+# include lib/Awt2dLibraries.gmk
 
 include lib/SoundLibraries.gmk
 

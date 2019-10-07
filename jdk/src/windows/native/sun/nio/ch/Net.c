@@ -134,7 +134,9 @@ Java_sun_nio_ch_Net_socket0(JNIEnv *env, jclass cl, jboolean preferIPv6,
 
     s = socket(domain, (stream ? SOCK_STREAM : SOCK_DGRAM), 0);
     if (s != INVALID_SOCKET) {
-        SetHandleInformation((HANDLE)s, HANDLE_FLAG_INHERIT, 0);
+		#ifndef UWP
+		SetHandleInformation((HANDLE)s, HANDLE_FLAG_INHERIT, 0);
+		#endif
 
         /* IPV6_V6ONLY is true by default */
         if (domain == AF_INET6) {

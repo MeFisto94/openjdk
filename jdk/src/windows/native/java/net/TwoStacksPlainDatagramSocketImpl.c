@@ -1524,8 +1524,11 @@ Java_java_net_TwoStacksPlainDatagramSocketImpl_datagramSocketCreate(JNIEnv *env,
     if (fd == JVM_IO_ERR) {
         NET_ThrowCurrent(env, "Socket creation failed");
         return;
-    }
+    
+	}
+	#ifndef UWP
     SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, FALSE);
+	#endif
     (*env)->SetIntField(env, fdObj, IO_fd_fdID, fd);
     NET_SetSockOpt(fd, SOL_SOCKET, SO_BROADCAST, (char*)&t, sizeof(BOOL));
 
@@ -1547,7 +1550,9 @@ Java_java_net_TwoStacksPlainDatagramSocketImpl_datagramSocketCreate(JNIEnv *env,
         t = FALSE;
         WSAIoctl(fd1,SIO_UDP_CONNRESET,&t,sizeof(t),&x1,sizeof(x1),&x2,0,0);
         (*env)->SetIntField(env, fd1Obj, IO_fd_fdID, fd1);
+		#ifndef UWP
         SetHandleInformation((HANDLE)(UINT_PTR)fd1, HANDLE_FLAG_INHERIT, FALSE);
+		#endif
     } else {
         /* drop the second fd */
         (*env)->SetObjectField(env, this, pdsi_fd1ID, NULL);
@@ -1667,6 +1672,7 @@ static int getIndexFromIf (JNIEnv *env, jobject nif) {
 }
 
 static int isAdapterIpv6Enabled(JNIEnv *env, int index) {
+#ifndef UWP
   netif *ifList, *curr;
   int ipv6Enabled = 0;
   if (getAllInterfacesAndAddresses (env, &ifList) < 0) {
@@ -1691,6 +1697,9 @@ static int isAdapterIpv6Enabled(JNIEnv *env, int index) {
   free_netif(ifList);
 
   return ipv6Enabled;
+#else
+	return 0;
+#endif
 }
 
 /*

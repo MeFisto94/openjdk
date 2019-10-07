@@ -75,7 +75,11 @@ JNIEXPORT jint JNICALL Java_java_net_DualStackPlainSocketImpl_socket0
         NET_ThrowNew(env, WSAGetLastError(), "create");
     }
 
+	#ifndef UWP
+	//"If this flag is set, a child process created with the bInheritHandles parameter of CreateProcess set to TRUE will inherit the object handle."
+	// so it might be safe to ignore in UWP as there won't really be a ChildProcess which could inherit this handle
     SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, FALSE);
+	#endif
 
     return fd;
 }
@@ -297,7 +301,9 @@ JNIEXPORT jint JNICALL Java_java_net_DualStackPlainSocketImpl_accept0
         return -1;
     }
 
+	#ifndef UWP // see previous SetHandleInformation for the reasoning
     SetHandleInformation((HANDLE)(UINT_PTR)newfd, HANDLE_FLAG_INHERIT, 0);
+	#endif
 
     ia = NET_SockaddrToInetAddress(env, (struct sockaddr *)&sa, &port);
     isa = (*env)->NewObject(env, isa_class, isa_ctorID, ia, port);

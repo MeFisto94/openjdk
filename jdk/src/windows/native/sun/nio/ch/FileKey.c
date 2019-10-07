@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../../common/winapi_stub.h"
 #include "jni.h"
 #include "jni_util.h"
 #include "jvm.h"
@@ -47,6 +48,7 @@ Java_sun_nio_ch_FileKey_initIDs(JNIEnv *env, jclass clazz)
 JNIEXPORT void JNICALL
 Java_sun_nio_ch_FileKey_init(JNIEnv *env, jobject this, jobject fdo)
 {
+#ifndef UWP
     HANDLE fileHandle = (HANDLE)(handleval(env, fdo));
     BOOL result;
     BY_HANDLE_FILE_INFORMATION fileInfo;
@@ -59,4 +61,7 @@ Java_sun_nio_ch_FileKey_init(JNIEnv *env, jobject this, jobject fdo)
     } else {
         JNU_ThrowIOExceptionWithLastError(env, "GetFileInformationByHandle failed");
     }
+#else
+	ThrowUnsupportedOpEx(env, "FileKey is not supported by UWP, as the file information cannot be queried!");
+#endif
 }

@@ -23,6 +23,7 @@
  * questions.
  */
 
+#include "../../../common/winapi_stub.h"
 #include <stdlib.h>
 #include <windows.h>
 #include <stdio.h>
@@ -87,15 +88,16 @@ void strappend(char *s1, char *s2) {
  * settings to obtain NameServer/DhcpNameServer and Domain/DhcpDomain.
  */
 static int loadConfig(char *sl, char *ns) {
+#ifndef UWP
     IP_ADAPTER_INFO *adapterP;
     ULONG size;
     DWORD ret;
     DWORD dwLen;
     ULONG ulType;
     char result[MAX_STR_LEN];
-    HANDLE hKey;
     int gotSearchList = 0;
 
+	HANDLE hKey;
     /*
      * First see if there is a global suffix list specified.
      */
@@ -229,6 +231,9 @@ static int loadConfig(char *sl, char *ns) {
     }
 
     return STS_SL_FOUND & STS_NS_FOUND;
+	#else // DNS might not be available, but we cannot query registry for help here. A more clever implementation might use Windows APIs which are newer than this W98 Stuff here....
+		return STS_ERROR;
+	#endif
 }
 
 
@@ -253,6 +258,7 @@ Java_sun_net_dns_ResolverConfigurationImpl_init0(JNIEnv *env, jclass cls)
 JNIEXPORT void JNICALL
 Java_sun_net_dns_ResolverConfigurationImpl_loadDNSconfig0(JNIEnv *env, jclass cls)
 {
+	#ifndef UWP
     char searchlist[MAX_STR_LEN];
     char nameservers[MAX_STR_LEN];
     jstring obj;
@@ -275,6 +281,9 @@ Java_sun_net_dns_ResolverConfigurationImpl_loadDNSconfig0(JNIEnv *env, jclass cl
     } else {
         JNU_ThrowOutOfMemoryError(env, "native memory allocation failed");
     }
+	#else
+		ThrowUnsupportedOpEx(env, "Unfortunately loading the DNS Servers from Registry is illegal (no registry access allowed)");
+	#endif
 }
 
 
@@ -286,6 +295,7 @@ Java_sun_net_dns_ResolverConfigurationImpl_loadDNSconfig0(JNIEnv *env, jclass cl
 JNIEXPORT jint JNICALL
 Java_sun_net_dns_ResolverConfigurationImpl_notifyAddrChange0(JNIEnv *env, jclass cls)
 {
+	#ifndef UWP
     OVERLAPPED ol;
     HANDLE h;
     DWORD rc, xfer;
@@ -298,6 +308,7 @@ Java_sun_net_dns_ResolverConfigurationImpl_notifyAddrChange0(JNIEnv *env, jclass
             return 0;   /* address changed */
         }
     }
+	#endif
 
     /* error */
     return -1;

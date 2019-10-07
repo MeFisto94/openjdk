@@ -51,12 +51,15 @@ LIBJSOUND_DAUDIOFILES := \
     DirectAudioDeviceProvider.c \
     DirectAudioDevice.c
 
+# Midi is not available on Windows and thus will throw an unavailable exception when undefined.
+# Same with PORTS (Mixer etc)
+# Also jsoundds (DirectSound) is not supported. Not sure how this will fail at runtime.
 ifeq ($(OPENJDK_TARGET_OS), windows)
-  EXTRA_SOUND_JNI_LIBS += jsoundds
+  #EXTRA_SOUND_JNI_LIBS += jsoundds
   LIBJSOUND_CFLAGS += -MD -DX_PLATFORM=X_WINDOWS \
-      -DUSE_PLATFORM_MIDI_OUT=TRUE \
-      -DUSE_PLATFORM_MIDI_IN=TRUE \
-      -DUSE_PORTS=TRUE
+      -DUSE_PLATFORM_MIDI_OUT=FALSE \
+      -DUSE_PLATFORM_MIDI_IN=FALSE \
+      -DUSE_PORTS=FALSE
   LIBJSOUND_SRC_FILES += \
       PLATFORM_API_WinOS_MidiIn.cpp \
       PLATFORM_API_WinOS_MidiOut.c \

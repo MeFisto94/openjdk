@@ -146,8 +146,10 @@ Java_java_net_TwoStacksPlainSocketImpl_socketCreate(JNIEnv *env, jobject this,
         NET_ThrowCurrent(env, "create");
         return;
     } else {
+		#ifndef UWP
         /* Set socket attribute so it is not passed to any child process */
         SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, FALSE);
+		#endif
         (*env)->SetIntField(env, fdObj, IO_fd_fdID, (int)fd);
     }
     if (ipv6_available()) {
@@ -167,8 +169,10 @@ Java_java_net_TwoStacksPlainSocketImpl_socketCreate(JNIEnv *env, jobject this,
             NET_ThrowCurrent(env, "create");
             return;
         } else {
+			#ifndef UWP
             /* Set socket attribute so it is not passed to any child process */
             SetHandleInformation((HANDLE)(UINT_PTR)fd1, HANDLE_FLAG_INHERIT, FALSE);
+			#endif
             (*env)->SetIntField(env, fd1Obj, IO_fd_fdID, fd1);
         }
     } else {
@@ -701,7 +705,9 @@ Java_java_net_TwoStacksPlainSocketImpl_socketAccept(JNIEnv *env, jobject this,
         }
         return;
     }
+	#ifndef UWP
     SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, 0);
+	#endif
     (*env)->SetIntField(env, socketFdObj, IO_fd_fdID, fd);
 
     if (him.him.sa_family == AF_INET) {

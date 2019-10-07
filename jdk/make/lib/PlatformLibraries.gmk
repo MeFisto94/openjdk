@@ -128,6 +128,7 @@ endif
 ##########################################################################################
 
   ifeq ($(OPENJDK_TARGET_OS), windows)
+  ifeq (true, false) # Intentional defect
 
   ACCESSBRIDGE_SRCDIR := $(JDK_TOPDIR)/src/windows/native/sun/bridge
 
@@ -223,4 +224,5 @@ endif
       $(eval $(call SetupAccessBridge,-64,X64,64))
     endif
 
+  endif
   endif

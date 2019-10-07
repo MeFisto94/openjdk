@@ -23,8 +23,9 @@
  * questions.
  */
 
-#include <windows.h>
+#include "../../common/winapi_stub.h"
 #include <winsock2.h>
+#include <windows.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +33,9 @@
 #include <sys/types.h>
 #include <process.h>
 #include <iphlpapi.h>
+#ifndef UWP
 #include <icmpapi.h>
+#endif
 #include <WinError.h>
 
 #include "java_net_InetAddress.h"
@@ -279,19 +282,25 @@ Java_java_net_Inet4AddressImpl_getHostByAddr(JNIEnv *env, jobject this,
 
 static BOOL
 WindowsVersionCheck(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor) {
-    OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
-    DWORDLONG const dwlConditionMask = VerSetConditionMask(
-        VerSetConditionMask(
-        VerSetConditionMask(
-                0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-                   VER_MINORVERSION, VER_GREATER_EQUAL),
-                   VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
+	OSVERSIONINFOEXW info;
+	UWP_GetVersionExW(&info);
 
-    osvi.dwMajorVersion = wMajorVersion;
-    osvi.dwMinorVersion = wMinorVersion;
-    osvi.wServicePackMajor = wServicePackMajor;
-
-    return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
+	if (info.dwMajorVersion > wMajorVersion) {
+		return TRUE;
+	}
+	else if (info.dwMajorVersion == wMajorVersion) {
+		if (info.dwMinorVersion > wMinorVersion) {
+			return TRUE;
+		}
+		else if (info.dwMinorVersion == wMinorVersion) {
+			if (info.wServicePackMajor >= wServicePackMajor) {
+				return TRUE;
+			}
+			else {
+				return FALSE;
+			}
+		}
+	}
 }
 
 static BOOL
@@ -458,6 +467,7 @@ ping4(JNIEnv *env,
       jint timeout,
       HANDLE hIcmpFile)
 {
+	#ifndef UWP
     // See https://msdn.microsoft.com/en-us/library/aa366050%28VS.85%29.aspx
 
     DWORD dwRetVal = 0;
@@ -557,6 +567,10 @@ ping4(JNIEnv *env,
     IcmpCloseHandle(hIcmpFile);
 
     return ret;
+	#else
+	ThrowUnsupportedOpEx(env, "Ping/ICMP is not supported in UWP!");
+	return JNI_FALSE;
+	#endif
 }
 
 /*
@@ -607,12 +621,15 @@ Java_java_net_Inet4AddressImpl_isReachable0(JNIEnv *env, jobject this,
             src_addr = htonl(src_addr);
         }
 
+#ifndef UWP
         hIcmpFile = IcmpCreateFile();
         if (hIcmpFile == INVALID_HANDLE_VALUE) {
             int err = WSAGetLastError();
             if (err == ERROR_ACCESS_DENIED) {
                 // fall back to TCP echo if access is denied to ICMP
+#endif
                 return tcp_ping4(env, addrArray, timeout, ifArray, ttl);
+#ifndef UWP
             } else {
                 NET_ThrowNew(env, err, "Unable to create ICMP file handle");
                 return JNI_FALSE;
@@ -620,6 +637,7 @@ Java_java_net_Inet4AddressImpl_isReachable0(JNIEnv *env, jobject this,
         } else {
             return ping4(env, src_addr, dest_addr, timeout, hIcmpFile);
         }
+#endif
     } else {
         tcp_ping4(env, addrArray, timeout, ifArray, ttl);
     }

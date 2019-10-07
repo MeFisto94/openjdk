@@ -22,6 +22,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+#include "../../common/winapi_stub.h"
 #include <windows.h>
 #include <winsock2.h>
 #include "jni.h"
@@ -113,8 +114,10 @@ JNIEXPORT jint JNICALL Java_java_net_DualStackPlainDatagramSocketImpl_socketCrea
         closesocket(fd);
         return -1;
     }
-
-    SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, FALSE);
+	#ifndef UWP
+		// on uwp noone will create a child process and inherit hhandles, so this is fine.
+		SetHandleInformation((HANDLE)(UINT_PTR)fd, HANDLE_FLAG_INHERIT, FALSE);
+	#endif
     NET_SetSockOpt(fd, SOL_SOCKET, SO_BROADCAST, (char*)&t, sizeof(BOOL));
 
     /* SIO_UDP_CONNRESET fixes a "bug" introduced in Windows 2000, which
