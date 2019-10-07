@@ -73,14 +73,6 @@ extern "C" {
 
 	}
 
-	DWORD inline UWP_GetTempPathA(DWORD nBufferLength, LPSTR lpBuffer) {
-		LPWSTR wBuffer = (LPWSTR)malloc(nBufferLength + 1); // Uncertain about \0's
-		DWORD res = GetTempPathW(nBufferLength, wBuffer);
-		wcstombs(lpBuffer, wBuffer, nBufferLength);
-		free((void*)wBuffer);
-		return res;
-	}
-
 	DWORD inline UWP_GetSystemDirectoryA(LPCSTR lpBuffer, DWORD nBufferLength) {
 		lpBuffer = "";
 		return NULL;
@@ -93,7 +85,7 @@ extern "C" {
 
 	HANDLE inline UWP_CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName) {
 		size_t len = strlen(lpName);
-		PWSTR buf = (PWSTR)malloc(len + 1);
+		PWSTR buf = (PWSTR)malloc(sizeof(wchar_t) * (len + 1));
 		mbstowcs(buf, lpName, len);
 		HANDLE res = CreateFileMappingFromApp(hFile, lpFileMappingAttributes, flProtect, ((ULONG64)dwMaximumSizeHigh) << 32L | dwMaximumSizeLow, (PCWSTR)buf);
 		free((void*)buf);
@@ -102,7 +94,7 @@ extern "C" {
 
 	HANDLE inline UWP_OpenFileMappingA(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName) {
 		size_t len = strlen(lpName);
-		PWSTR buf = (PWSTR)malloc(len + 1);
+		PWSTR buf = (PWSTR)malloc(sizeof(wchar_t) * (len + 1));
 		mbstowcs(buf, lpName, len);
 		HANDLE res = OpenFileMappingFromApp(dwDesiredAccess, bInheritHandle, (PCWSTR)buf);
 		free((void*)buf);
@@ -127,7 +119,7 @@ extern "C" {
 
 	HMODULE inline UWP_GetModuleHandleA(LPCSTR lpLibFileName) {
 		size_t len = strlen(lpLibFileName);
-		PWSTR buf = (PWSTR)malloc(len + 1);
+		PWSTR buf = (PWSTR)malloc((len + 1) * sizeof(wchar_t));
 		mbstowcs(buf, lpLibFileName, len);
 
 		HMODULE h = LoadPackagedLibrary(buf, 0);
@@ -220,7 +212,7 @@ extern "C" {
 #define CreateFile UWP_CreateFileA
 #define GetEnvironmentVariable UWP_GetEnvironmentVariableA
 #define SetEnvironmentVariable UWP_SetEnvironmentVariableA
-#define GetTempPath UWP_GetTempPathA
+#define GetTempPath GetTempPathA
 #define GetSystemDirectory UWP_GetSystemDirectoryA
 #define GetWindowsDirectory UWP_GetWindowsDirectoryA
 #define OpenFileMapping UWP_OpenFileMappingA
