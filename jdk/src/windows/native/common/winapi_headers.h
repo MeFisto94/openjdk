@@ -319,7 +319,8 @@
 	} IMAGEHLP_SYMBOL64, *PIMAGEHLP_SYMBOL64;
 
 	// fileapi.h
-	typedef struct _BY_HANDLE_FILE_INFORMATION {
+	// present in 10.0.18362, but not in 10.0.17763, thus I have to uncomment this locally but comment this for CI
+	/*typedef struct _BY_HANDLE_FILE_INFORMATION {
 		DWORD dwFileAttributes;
 		FILETIME ftCreationTime;
 		FILETIME ftLastAccessTime;
@@ -330,6 +331,6 @@
 		DWORD nNumberOfLinks;
 		DWORD nFileIndexHigh;
 		DWORD nFileIndexLow;
-	} BY_HANDLE_FILE_INFORMATION, *PBY_HANDLE_FILE_INFORMATION, *LPBY_HANDLE_FILE_INFORMATION;
+	} BY_HANDLE_FILE_INFORMATION, *PBY_HANDLE_FILE_INFORMATION, *LPBY_HANDLE_FILE_INFORMATION;*/
 
 #endif // WINAPI_HEADERS_H
